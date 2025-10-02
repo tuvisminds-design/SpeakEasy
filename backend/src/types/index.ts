@@ -1,7 +1,15 @@
 export interface User {
   id: number;
-  username: string;
-  password: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  bio?: string;
+  avatar_url?: string;
+  company?: string;
+  job_title?: string;
+  location?: string;
+  website?: string;
   role: 'user' | 'admin';
   created_at: Date;
   updated_at: Date;
@@ -27,16 +35,27 @@ export interface AISettings {
   updated_at: Date;
 }
 
-export interface LoginRequest {
-  username: string;
-  password: string;
+export interface SendOTPRequest {
+  email: string;
 }
 
-export interface LoginResponse {
+export interface VerifyOTPRequest {
+  email: string;
+  otp: string;
+}
+
+export interface SendOTPResponse {
+  message: string;
+  expires_in: number;
+}
+
+export interface VerifyOTPResponse {
   token: string;
   user: {
     id: number;
-    username: string;
+    email: string;
+    first_name?: string;
+    last_name?: string;
     role: string;
   };
 }
@@ -66,4 +85,44 @@ export interface AISettingsResponse {
     provider: string;
     is_active: boolean;
   }>;
+}
+
+export interface UserProfile {
+  id: number;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  bio?: string;
+  avatar_url?: string;
+  company?: string;
+  job_title?: string;
+  location?: string;
+  website?: string;
+  role: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface UpdateProfileRequest {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  bio?: string;
+  avatar_url?: string;
+  company?: string;
+  job_title?: string;
+  location?: string;
+  website?: string;
+}
+
+export interface SignUpRequest {
+  email: string;
+  password: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  company?: string;
+  job_title?: string;
+  location?: string;
 }

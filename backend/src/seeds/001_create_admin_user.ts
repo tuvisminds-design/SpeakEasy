@@ -1,15 +1,15 @@
 import { Knex } from 'knex';
-import bcrypt from 'bcryptjs';
 
 export async function seed(knex: Knex): Promise<void> {
   // Create admin user
-  const hashedPassword = await bcrypt.hash('admin123', 10);
-  
   await knex('users').insert([
     {
-      username: 'admin',
-      password: hashedPassword,
+      email: 'kulkarni.madhwaraj@gmail.com',
       role: 'admin',
+      first_name: 'Madhwaraj',
+      last_name: 'Kulkarni',
+      created_at: new Date(),
+      updated_at: new Date(),
     },
   ]);
 

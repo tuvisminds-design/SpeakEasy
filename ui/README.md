@@ -4,6 +4,14 @@ SpeakEasy is an AI-powered public speaking assistant designed to help users tran
 
 ## Features
 
+### 🔐 Authentication
+- OTP-based authentication system (no passwords required)
+- Email verification with 4-digit OTP codes
+- Secure JWT token authentication
+- Protected routes and user-specific data
+- Automatic user creation on first OTP verification
+- Default admin account: kulkarni.madhwaraj@gmail.com (Madhwaraj Kulkarni)
+
 ### 🎤 Speech Generator
 - Transform any topic into structured speaking points
 - Two speech types: Impromptu (PREP framework) and Planned Presentation

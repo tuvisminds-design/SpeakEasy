@@ -46,13 +46,32 @@ class ApiService {
   }
 
   // Authentication
-  async login(username: string, password: string) {
-    const result = await this.request('/auth/login', {
+  async sendOTP(email: string) {
+    return await this.request('/auth/send-otp', {
       method: 'POST',
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email }),
+    });
+  }
+
+  async verifyOTP(email: string, otp: string) {
+    const result = await this.request('/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email, otp }),
     });
     this.setToken(result.token);
     return result;
+  }
+
+  // Profile Management
+  async getProfile() {
+    return this.request('/auth/profile');
+  }
+
+  async updateProfile(profileData: any) {
+    return this.request('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
   }
 
   // Speech Generation

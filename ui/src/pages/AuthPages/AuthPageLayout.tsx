@@ -2,6 +2,7 @@ import React from "react";
 import GridShape from "../../components/common/GridShape";
 import { Link } from "react-router";
 import ThemeTogglerTwo from "../../components/common/ThemeTogglerTwo";
+import { SpeakEasyLogo } from "../../icons";
 
 export default function AuthLayout({
   children,
@@ -17,16 +18,17 @@ export default function AuthLayout({
             {/* <!-- ===== Common Grid Shape Start ===== --> */}
             <GridShape />
             <div className="flex flex-col items-center max-w-xs">
-              <Link to="/" className="block mb-4">
-                <img
-                  width={231}
-                  height={48}
-                  src="/images/logo/auth-logo.svg"
-                  alt="Logo"
-                />
+              <Link to="/" className="block mb-6">
+                <div className="flex items-center gap-3">
+                  <SpeakEasyLogo size="lg" />
+                  <div className="text-white">
+                    <h1 className="text-2xl font-bold">SpeakEasy</h1>
+                    <p className="text-sm opacity-80">Public Speaking Assistant</p>
+                  </div>
+                </div>
               </Link>
               <p className="text-center text-gray-400 dark:text-white/60">
-                Free and Open-Source Tailwind CSS Admin Dashboard Template
+                Transform any topic into compelling speaking points using AI-powered insights
               </p>
             </div>
           </div>

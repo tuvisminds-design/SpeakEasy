@@ -59,6 +59,8 @@ import { ReactComponent as BookIcon } from "./book.svg?react";
 import { ReactComponent as RefreshIcon } from "./refresh.svg?react";
 import { ReactComponent as TargetIcon } from "./target.svg?react";
 import { ReactComponent as QuestionIcon } from "./question.svg?react";
+import SpeakEasyLogo from "./SpeakEasyLogo";
+import DefaultUserIcon from "./UserIcon";
 
 export {
   ErrorHexaIcon,
@@ -122,4 +124,6 @@ export {
   RefreshIcon,
   TargetIcon,
   QuestionIcon,
+  SpeakEasyLogo,
+  DefaultUserIcon,
 };

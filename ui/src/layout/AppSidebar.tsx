@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 
 // Assume these icons are imported from an icon library
 import {
@@ -17,8 +17,11 @@ import {
   MicrophoneIcon,
   BookIcon,
   RefreshIcon,
+  SpeakEasyLogo,
+  LockIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
+import { useAuth } from "../context/AuthContext";
 
 type NavItem = {
   name: string;
@@ -43,6 +46,11 @@ const navItems: NavItem[] = [
     name: "Speech History",
     path: "/speech-history",
   },
+  {
+    icon: <UserCircleIcon />,
+    name: "Profile",
+    path: "/profile",
+  },
 ];
 
 const othersItems: NavItem[] = [];
@@ -50,6 +58,13 @@ const othersItems: NavItem[] = [];
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleSignOut = () => {
+    logout();
+    navigate('/signin');
+  };
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
@@ -260,53 +275,82 @@ const AppSidebar: React.FC = () => {
       >
         <Link to="/">
           {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              <img
-                className="dark:hidden"
-                src="/images/logo/speakeasy-logo.svg"
-                alt="SpeakEasy Logo"
-                width={150}
-                height={40}
-              />
-              <img
-                className="hidden dark:block"
-                src="/images/logo/speakeasy-logo-dark.svg"
-                alt="SpeakEasy Logo"
-                width={150}
-                height={40}
-              />
-            </>
+            <div className="flex items-center gap-3">
+              <SpeakEasyLogo size="md" />
+              <div>
+                <h1 className="text-lg font-bold text-gray-900 dark:text-white">SpeakEasy</h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Public Speaking Assistant</p>
+              </div>
+            </div>
           ) : (
-            <img
-              src="/images/logo/speakeasy-logo-icon.svg"
-              alt="SpeakEasy Logo"
-              width={32}
-              height={32}
-            />
+            <SpeakEasyLogo size="md" />
           )}
         </Link>
       </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
-        <nav className="mb-6">
-          <div className="flex flex-col gap-4">
-            <div>
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-                  !isExpanded && !isHovered
-                    ? "lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? (
-                  "Navigation"
-                ) : (
-                  <HorizontaLDots className="size-6" />
-                )}
-              </h2>
-              {renderMenuItems(navItems, "main")}
+      <div className="flex flex-col h-full">
+        {/* Main Navigation Section */}
+        <div className="flex-1 overflow-y-auto duration-300 ease-linear no-scrollbar">
+          <nav className="mb-6">
+            <div className="flex flex-col gap-4">
+              <div>
+                <h2
+                  className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                    !isExpanded && !isHovered
+                      ? "lg:justify-center"
+                      : "justify-start"
+                  }`}
+                >
+                  {isExpanded || isHovered || isMobileOpen ? (
+                    "Navigation"
+                  ) : (
+                    <HorizontaLDots className="size-6" />
+                  )}
+                </h2>
+                {renderMenuItems(navItems, "main")}
+              </div>
+            </div>
+          </nav>
+        </div>
+
+        {/* User Profile & Sign Out Section */}
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-4 pb-6">
+          {/* User Profile Info */}
+          <div className="mb-4">
+            <div className="flex items-center gap-3 px-2">
+              <div className="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                {user?.first_name ? user.first_name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || 'U'}
+              </div>
+              {(isExpanded || isHovered || isMobileOpen) && (
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    {user?.first_name && user?.last_name 
+                      ? `${user.first_name} ${user.last_name}` 
+                      : user?.email || 'User'
+                    }
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {user?.email}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
-        </nav>
+
+          {/* Sign Out Button */}
+          <div className="px-2">
+            <button
+              onClick={handleSignOut}
+              className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors ${
+                !isExpanded && !isHovered ? "justify-center" : "justify-start"
+              }`}
+            >
+              <LockIcon className="w-4 h-4 flex-shrink-0" />
+              {(isExpanded || isHovered || isMobileOpen) && (
+                <span>Sign Out</span>
+              )}
+            </button>
+          </div>
+        </div>
       </div>
     </aside>
   );

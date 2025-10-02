@@ -28,13 +28,8 @@ const SpeechGenerator = () => {
     }
 
     if (!isAuthenticated) {
-      // Auto-login as admin for demo purposes
-      try {
-        await login('admin', 'admin123');
-      } catch (error) {
-        setError('Please log in to generate speeches');
-        return;
-      }
+      setError('Please log in to generate speeches');
+      return;
     }
 
     setIsGenerating(true);

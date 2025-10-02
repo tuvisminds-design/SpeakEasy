@@ -79,10 +79,34 @@ The API will be available at `http://localhost:3001`
 - `PUT /api/admin/ai-provider` - Update active AI provider
 - `GET /api/admin/stats` - Get system statistics
 
+## Authentication API
+
+- `POST /api/auth/send-otp` - Send OTP to email address
+- `POST /api/auth/verify-otp` - Verify OTP and get JWT token
+- `GET /api/auth/profile` - Get user profile (requires authentication)
+- `PUT /api/auth/profile` - Update user profile (requires authentication)
+
+## API Usage Examples
+
+### Send OTP
+```bash
+curl -X POST http://localhost:3001/api/auth/send-otp \
+  -H "Content-Type: application/json" \
+  -d '{"email": "kulkarni.madhwaraj@gmail.com"}'
+```
+
+### Verify OTP
+```bash
+curl -X POST http://localhost:3001/api/auth/verify-otp \
+  -H "Content-Type: application/json" \
+  -d '{"email": "kulkarni.madhwaraj@gmail.com", "otp": "1234"}'
+```
+
 ## Default Admin Account
 
-- **Username**: `admin`
-- **Password**: `admin123`
+- **Email**: `kulkarni.madhwaraj@gmail.com`
+- **Name**: Madhwaraj Kulkarni
+- **Authentication**: OTP-based (no password required)
 
 ## Database Configuration
 
@@ -116,7 +140,7 @@ Only one provider can be active at a time. Use the admin endpoints to switch bet
 ```bash
 curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "admin123"}'
+  -d '{"email": "kulkarni.madhwaraj@gmail.com", "password": "admin123"}'
 ```
 
 ### Generate Speech
