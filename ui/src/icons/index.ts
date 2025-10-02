@@ -61,6 +61,12 @@ import { ReactComponent as TargetIcon } from "./target.svg?react";
 import { ReactComponent as QuestionIcon } from "./question.svg?react";
 import SpeakEasyLogo from "./SpeakEasyLogo";
 import DefaultUserIcon from "./UserIcon";
+import Volume2Icon from "./Volume2Icon";
+import UsersIcon from "./UsersIcon";
+import HeartIcon from "./HeartIcon";
+import ClockIcon from "./ClockIcon";
+import LightbulbIcon from "./LightbulbIcon";
+import BodyLanguageIcon from "./BodyLanguageIcon";
 
 export {
   ErrorHexaIcon,
@@ -126,4 +132,10 @@ export {
   QuestionIcon,
   SpeakEasyLogo,
   DefaultUserIcon,
+  Volume2Icon,
+  UsersIcon,
+  HeartIcon,
+  ClockIcon,
+  LightbulbIcon,
+  BodyLanguageIcon,
 };

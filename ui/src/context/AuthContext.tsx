@@ -60,21 +60,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check if user is already logged in
     const token = apiService.getToken();
     if (token) {
-      // In a real app, you'd validate the token with the backend
-      // For now, we'll just set a default user for demo purposes
-      setUser({ id: 1, email: 'kulkarni.madhwaraj@gmail.com', first_name: 'Madhwaraj', last_name: 'Kulkarni', role: 'admin' });
-      // Fetch profile data
+      // Validate token by fetching profile
       fetchProfile();
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const fetchProfile = async () => {
     try {
       const profileData = await apiService.getProfile();
       setProfile(profileData);
+      // Set user data from profile
+      if (profileData) {
+        setUser({
+          id: profileData.id,
+          email: profileData.email,
+          first_name: profileData.first_name,
+          last_name: profileData.last_name,
+          role: profileData.role || 'user'
+        });
+      }
     } catch (error) {
       console.error('Failed to fetch profile:', error);
+      // If profile fetch fails, clear the token and user
+      apiService.clearToken();
+      setUser(null);
+      setProfile(null);
+    } finally {
+      setLoading(false);
     }
   };
 

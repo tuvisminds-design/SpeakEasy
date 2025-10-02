@@ -1,49 +1,77 @@
-import { BookIcon, BoltIcon, TargetIcon, TimeIcon } from "../icons";
+import { BookIcon, BoltIcon, TargetIcon, TimeIcon, LightbulbIcon, BodyLanguageIcon, Volume2Icon, UsersIcon, HeartIcon, ClockIcon } from "../icons";
 
 const SpeakingTips = () => {
   const tips = [
     {
-      category: "Preparation",
-      icon: <TargetIcon className="w-6 h-6 text-brand-500" />,
-      tips: [
-        "Know your audience and tailor your message accordingly",
-        "Practice your opening and closing lines multiple times",
-        "Prepare 3-5 key points maximum to avoid overwhelming your audience",
-        "Use the PREP method: Point, Reason, Example, Point",
-        "Time your speech and practice with a timer"
-      ]
-    },
-    {
-      category: "Delivery",
-      icon: <BoltIcon className="w-6 h-6 text-orange-500" />,
+      category: "Body Language",
+      icon: <BodyLanguageIcon className="w-5 h-5 text-blue-600" />,
+      iconBg: "bg-blue-100",
+      badgeColor: "bg-blue-100 text-blue-800 border-blue-200",
       tips: [
         "Maintain eye contact with different sections of your audience",
-        "Use gestures naturally to emphasize key points",
-        "Vary your pace and tone to keep the audience engaged",
-        "Pause for effect after important statements",
-        "Speak clearly and project your voice to the back of the room"
+        "Use open gestures and avoid crossing your arms",
+        "Stand tall with shoulders back to project confidence",
+        "Move purposefully - avoid pacing or swaying"
       ]
     },
     {
-      category: "Structure",
-      icon: <BookIcon className="w-6 h-6 text-blue-500" />,
+      category: "Voice & Delivery",
+      icon: <Volume2Icon className="w-5 h-5 text-green-600" />,
+      iconBg: "bg-green-100",
+      badgeColor: "bg-green-100 text-green-800 border-green-200",
       tips: [
-        "Start with a strong hook or compelling question",
-        "Use the 'Tell them what you're going to tell them' approach",
-        "Support each point with evidence or examples",
-        "Use transitions between points for smooth flow",
-        "End with a memorable conclusion or call to action"
+        "Speak slower than you think you should",
+        "Vary your tone to maintain interest",
+        "Use strategic pauses for emphasis",
+        "Project your voice to the back of the room"
       ]
     },
     {
-      category: "Confidence",
-      icon: <TimeIcon className="w-6 h-6 text-green-500" />,
+      category: "Audience Engagement",
+      icon: <UsersIcon className="w-5 h-5 text-purple-600" />,
+      iconBg: "bg-purple-100",
+      badgeColor: "bg-purple-100 text-purple-800 border-purple-200",
       tips: [
-        "Practice deep breathing exercises before speaking",
-        "Visualize yourself delivering a successful speech",
-        "Start with smaller audiences to build confidence",
-        "Remember that most people want you to succeed",
-        "Focus on your message, not on yourself"
+        "Start with a compelling hook or question",
+        "Tell stories to make your points memorable",
+        "Ask rhetorical questions to involve your audience",
+        "Use 'you' language to create connection"
+      ]
+    },
+    {
+      category: "Managing Nerves",
+      icon: <HeartIcon className="w-5 h-5 text-red-600" />,
+      iconBg: "bg-red-100",
+      badgeColor: "bg-red-100 text-red-800 border-red-200",
+      tips: [
+        "Practice deep breathing before speaking",
+        "Visualize success before your presentation",
+        "Remember that nerves are normal and can be helpful",
+        "Focus on your message, not your anxiety"
+      ]
+    },
+    {
+      category: "Time Management",
+      icon: <ClockIcon className="w-5 h-5 text-orange-600" />,
+      iconBg: "bg-orange-100",
+      badgeColor: "bg-orange-100 text-orange-800 border-orange-200",
+      tips: [
+        "Practice with a timer to know your actual speaking pace",
+        "Build in buffer time for audience interaction",
+        "Have a clear structure with distinct sections",
+        "Prepare a shorter version if you run long"
+      ]
+    },
+    {
+      category: "Content Structure",
+      icon: <TargetIcon className="w-5 h-5 text-teal-600" />,
+      iconBg: "bg-teal-100",
+      badgeColor: "bg-teal-100 text-teal-800 border-teal-200",
+      tips: [
+        "Follow the 'Tell them' rule: Tell them what you'll say, say it, tell them what you said",
+        "Limit main points to 3-5 for better retention",
+        "Use transitions to guide your audience through your speech",
+        "End with a clear call to action or memorable statement"
       ]
     }
   ];
@@ -83,108 +111,76 @@ const SpeakingTips = () => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <BookIcon className="w-8 h-8 text-brand-500" />
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Speaking Tips
-          </h1>
-        </div>
-        <p className="text-lg text-gray-600 dark:text-gray-300">
-          Master the art of public speaking with proven techniques and frameworks.
-        </p>
-      </div>
-
-      {/* Tips by Category */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-        {tips.map((category, index) => (
-          <div
-            key={index}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-theme-sm border border-gray-200 dark:border-gray-700"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              {category.icon}
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {category.category}
-              </h2>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <LightbulbIcon className="w-6 h-6 text-white" />
             </div>
-            <ul className="space-y-3">
-              {category.tips.map((tip, tipIndex) => (
-                <li key={tipIndex} className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-brand-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <span className="text-gray-600 dark:text-gray-300">{tip}</span>
-                </li>
-              ))}
-            </ul>
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
+              Speaking Tips
+            </h1>
           </div>
-        ))}
-      </div>
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Master the art of public speaking with these proven techniques and best practices
+          </p>
+        </div>
 
-      {/* Speaking Frameworks */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-          Speaking Frameworks
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {frameworks.map((framework, index) => (
+        {/* Tips by Category */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {tips.map((category, index) => (
             <div
               key={index}
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-theme-sm border border-gray-200 dark:border-gray-700"
+              className="rounded-lg bg-card text-card-foreground glass-effect border-0 shadow-lg h-full hover:shadow-xl transition-all duration-300"
             >
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  {framework.name}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {framework.description}
-                </p>
-              </div>
-              <div className="space-y-2">
-                {framework.steps.map((step, stepIndex) => (
-                  <div key={stepIndex} className="flex items-start gap-3">
-                    <div className={`w-6 h-6 rounded-full bg-${framework.color}-100 dark:bg-${framework.color}-900/20 flex items-center justify-center flex-shrink-0`}>
-                      <span className={`text-xs font-medium text-${framework.color}-700 dark:text-${framework.color}-400`}>
-                        {stepIndex + 1}
-                      </span>
-                    </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">{step}</span>
+              <div className="flex flex-col space-y-1.5 p-6 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${category.iconBg}`}>
+                    {category.icon}
                   </div>
-                ))}
+                  <div>
+                    <h3 className="tracking-tight text-xl font-semibold text-slate-900">
+                      {category.category}
+                    </h3>
+                    <div className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-secondary/80 text-xs mt-1 ${category.badgeColor}`}>
+                      {category.tips.length} tips
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 pt-0">
+                <div className="space-y-3">
+                  {category.tips.map((tip, tipIndex) => (
+                    <div key={tipIndex} className="flex items-start gap-3 p-3 bg-white rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
+                      <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <BoltIcon className="w-3 h-3 text-slate-600" />
+                      </div>
+                      <p className="text-slate-700 leading-relaxed text-sm">{tip}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Quick Reference */}
-      <div className="bg-gradient-to-r from-brand-50 to-blue-50 dark:from-brand-500/10 dark:to-blue-500/10 rounded-xl p-8 border border-brand-200 dark:border-brand-500/20">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          Quick Reference
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="font-medium text-gray-900 dark:text-white mb-2">
-              Before You Speak
-            </h3>
-            <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-              <li>• Practice your opening line</li>
-              <li>• Check your technology and setup</li>
-              <li>• Arrive early to get comfortable</li>
-              <li>• Take deep breaths to calm nerves</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium text-gray-900 dark:text-white mb-2">
-              During Your Speech
-            </h3>
-            <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-              <li>• Start strong with a compelling hook</li>
-              <li>• Make eye contact with your audience</li>
-              <li>• Use pauses for emphasis</li>
-              <li>• End with a clear call to action</li>
-            </ul>
+        {/* Pro Tip Section */}
+        <div className="mt-8">
+          <div className="rounded-lg bg-card text-card-foreground glass-effect border-0 shadow-lg bg-gradient-to-r from-teal-50 to-blue-50">
+            <div className="p-6">
+              <div className="text-center space-y-4">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm">
+                  <BoltIcon className="w-4 h-4 text-teal-600" />
+                  <span className="text-sm font-semibold text-slate-900">Pro Tip</span>
+                </div>
+                <h3 className="text-xl font-bold text-slate-900">Practice Makes Progress</h3>
+                <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                  The best way to improve your public speaking skills is through regular practice. Start with small audiences, record yourself to identify areas for improvement, and gradually challenge yourself with larger groups and more complex topics.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

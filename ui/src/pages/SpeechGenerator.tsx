@@ -10,7 +10,7 @@ const SpeechGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPoints, setGeneratedPoints] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const suggestedTopics = [
     "The importance of work-life balance",
@@ -48,210 +48,221 @@ const SpeechGenerator = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
-          <BoltIcon className="w-8 h-8 text-brand-500" />
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <BoltIcon className="w-8 h-8 text-teal-600" />
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
             Speech Generator
           </h1>
         </div>
-        <p className="text-lg text-gray-600 dark:text-gray-300">
+        <p className="text-lg text-slate-600 dark:text-slate-300">
           Transform any topic into compelling speaking points using proven frameworks and AI-powered insights.
         </p>
       </div>
 
       {/* Configure Your Speech Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-8 mb-8 shadow-theme-sm border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-3 mb-6">
-          <TargetIcon className="w-6 h-6 text-brand-500" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+      <div className="rounded-lg bg-white dark:bg-gray-800 text-slate-900 dark:text-white shadow-xl border-0">
+        {/* Card Header */}
+        <div className="flex flex-col space-y-1.5 p-6 pb-4">
+          <h3 className="tracking-tight flex items-center gap-2 text-xl font-semibold text-slate-900 dark:text-white">
+            <TargetIcon className="w-5 h-5 text-teal-600" />
             Configure Your Speech
-          </h2>
-        </div>
-
-        {/* Topic Input */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <QuestionIcon className="w-5 h-5 text-gray-500" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              What would you like to speak about?
-            </h3>
-          </div>
-          
-          <input
-            type="text"
-            value={speechTopic}
-            onChange={(e) => setSpeechTopic(e.target.value)}
-            placeholder="Enter your speech topic..."
-            className="w-full px-4 py-4 text-lg border-2 border-yellow-300 rounded-lg focus:border-yellow-400 focus:outline-none bg-yellow-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-          />
-
-          {/* Topic Suggestions */}
-          <div className="mt-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-              Need inspiration? Try these topics:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {suggestedTopics.map((topic, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSpeechTopic(topic)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                >
-                  {topic}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Speech Type Selection */}
-        <div className="mb-8">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-            Speech Type
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Impromptu Speech Card */}
-            <div
-              className={`relative p-6 border-2 rounded-xl cursor-pointer transition-all ${
-                speechType === "impromptu"
-                  ? "border-brand-500 bg-brand-50 dark:bg-brand-500/10"
-                  : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-              }`}
-              onClick={() => setSpeechType("impromptu")}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <BoltIcon className="w-6 h-6 text-brand-500" />
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Impromptu Speech
-                </h4>
-              </div>
-              <span className="inline-block px-3 py-1 text-xs font-medium text-orange-700 bg-orange-100 dark:bg-orange-900/20 dark:text-orange-400 rounded-full mb-3">
-                PREP Framework
-              </span>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Perfect for unexpected speaking opportunities. Uses the PREP method: Point, Reason, Example, Point.
-              </p>
-            </div>
-
-            {/* Planned Presentation Card */}
-            <div
-              className={`relative p-6 border-2 rounded-xl cursor-pointer transition-all ${
-                speechType === "planned"
-                  ? "border-brand-500 bg-brand-50 dark:bg-brand-500/10"
-                  : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
-              }`}
-              onClick={() => setSpeechType("planned")}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <TargetIcon className="w-6 h-6 text-blue-500" />
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Planned Presentation
-                </h4>
-              </div>
-              <span className="inline-block px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 rounded-full mb-3">
-                Full Outline
-              </span>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Comprehensive structure for formal presentations with detailed outlines and supporting content.
-              </p>
-            </div>
-          </div>
         </div>
 
-        {/* Duration Slider */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <TimeIcon className="w-5 h-5 text-gray-500" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              Duration
-            </h3>
-          </div>
-          
-          <div className="px-4">
-            <div className="text-center mb-4">
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                {duration} minutes
-              </span>
-            </div>
-            <div className="relative">
-              <input
-                type="range"
-                min="1"
-                max="30"
-                value={duration}
-                onChange={(e) => setDuration(Number(e.target.value))}
-                className="w-full h-2 appearance-none cursor-pointer slider-dual"
-                style={{
-                  background: `linear-gradient(to right, #12b76a 0%, #12b76a ${((duration - 1) / (30 - 1)) * 100}%, #e5e7eb ${((duration - 1) / (30 - 1)) * 100}%, #e5e7eb 100%)`
-                }}
-              />
-              <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
-                <span>1 min</span>
-                <span>30 min</span>
+        {/* Card Content */}
+        <div className="p-6 pt-0 space-y-6">
+          {/* Topic Input Section */}
+          <div className="space-y-4">
+            <label className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <QuestionIcon className="w-4 h-4 text-teal-600" />
+              What would you like to speak about?
+            </label>
+            <input
+              type="text"
+              value={speechTopic}
+              onChange={(e) => setSpeechTopic(e.target.value)}
+              placeholder="Enter your speech topic..."
+              className="flex h-12 w-full bg-background ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm text-lg py-3 px-4 rounded-xl border-2 transition-all duration-200 border-slate-200 dark:border-slate-600 focus:border-teal-500 bg-white dark:bg-gray-700 text-slate-900 dark:text-white"
+            />
+
+            {/* Topic Suggestions */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                Need inspiration? Try these topics:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {suggestedTopics.map((topic, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSpeechTopic(topic)}
+                    className="px-3 py-2 text-sm bg-white hover:bg-teal-50 text-slate-700 hover:text-teal-700 rounded-lg border border-slate-200 hover:border-teal-300 transition-all duration-200 dark:bg-gray-700 dark:text-slate-300 dark:hover:bg-teal-900/20 dark:border-slate-600"
+                  >
+                    {topic}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Generate Button */}
-        <div className="text-center">
+          {/* Divider */}
+          <div className="shrink-0 bg-slate-200 dark:bg-slate-600 h-[1px] w-full my-6"></div>
+
+          {/* Speech Type Selection */}
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <label className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-base font-semibold text-slate-900 dark:text-white">
+                Speech Type
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Impromptu Speech Card */}
+                <div className="relative">
+                  <input
+                    type="radio"
+                    id="impromptu"
+                    name="speechType"
+                    value="impromptu"
+                    checked={speechType === "impromptu"}
+                    onChange={(e) => setSpeechType(e.target.value as "impromptu")}
+                    className="sr-only peer"
+                  />
+                  <label
+                    htmlFor="impromptu"
+                    className={`flex flex-col items-start space-y-3 rounded-xl border-2 p-4 cursor-pointer transition-all duration-200 ${
+                      speechType === "impromptu"
+                        ? "border-teal-500 bg-teal-50 dark:bg-teal-900/20"
+                        : "border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center">
+                        <BoltIcon className="w-4 h-4 text-orange-600" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-slate-900 dark:text-white">
+                          Impromptu Speech
+                        </div>
+                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent hover:bg-secondary/80 text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400">
+                          PREP Framework
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                      Perfect for unexpected speaking opportunities. Uses the PREP method: Point, Reason, Example, Point.
+                    </p>
+                  </label>
+                </div>
+
+                {/* Planned Presentation Card */}
+                <div className="relative">
+                  <input
+                    type="radio"
+                    id="planned"
+                    name="speechType"
+                    value="planned"
+                    checked={speechType === "planned"}
+                    onChange={(e) => setSpeechType(e.target.value as "planned")}
+                    className="sr-only peer"
+                  />
+                  <label
+                    htmlFor="planned"
+                    className={`flex flex-col items-start space-y-3 rounded-xl border-2 p-4 cursor-pointer transition-all duration-200 ${
+                      speechType === "planned"
+                        ? "border-teal-500 bg-teal-50 dark:bg-teal-900/20"
+                        : "border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                        <TargetIcon className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-slate-900 dark:text-white">
+                          Planned Presentation
+                        </div>
+                        <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent hover:bg-secondary/80 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                          Full Outline
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                      Comprehensive structure for formal presentations with detailed outlines and supporting content.
+                    </p>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Duration Selection */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-base font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                  <TimeIcon className="w-4 h-4 text-teal-600" />
+                  Duration
+                </label>
+                <div className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground font-semibold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                  {duration} minutes
+                </div>
+              </div>
+              <div className="px-2">
+                <input
+                  type="range"
+                  min="1"
+                  max="30"
+                  value={duration}
+                  onChange={(e) => setDuration(Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer slider"
+                />
+                <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400 mt-2">
+                  <span>1 min</span>
+                  <span>15 min</span>
+                  <span>30 min</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Generate Button */}
           <button
             onClick={handleGenerateSpeech}
-            disabled={isGenerating}
-            className={`inline-flex items-center gap-3 px-8 py-4 text-white font-semibold text-lg rounded-lg transition-colors shadow-lg hover:shadow-xl ${
-              isGenerating 
-                ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-teal-500 hover:bg-teal-600'
-            }`}
+            disabled={isGenerating || !speechTopic.trim()}
+            className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-11 w-full bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            <BoltIcon className="w-6 h-6" />
-            {isGenerating ? 'Generating...' : 'Generate Speaking Points'}
+            <div className="flex items-center gap-2">
+              <BoltIcon className="w-5 h-5" />
+              {isGenerating ? "Generating..." : "Generate Speaking Points"}
+            </div>
           </button>
         </div>
-
-        {/* Error Display */}
-        {error && (
-          <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-red-700 dark:text-red-400 text-sm">{error}</p>
-          </div>
-        )}
-
-        {/* Generated Speaking Points */}
-        {generatedPoints.length > 0 && (
-          <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl p-8 shadow-theme-sm border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-3 mb-6">
-              <BoltIcon className="w-6 h-6 text-green-500" />
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Generated Speaking Points
-              </h2>
-            </div>
-            
-            <div className="space-y-4">
-              {generatedPoints.map((point, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <span className="text-green-700 dark:text-green-400 font-semibold text-sm">
-                      {index + 1}
-                    </span>
-                  </div>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{point}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                <span>Topic: {speechTopic}</span>
-                <span>Type: {speechType === 'impromptu' ? 'Impromptu (PREP)' : 'Planned Presentation'}</span>
-                <span>Duration: {duration} minutes</span>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+
+      {/* Generated Points */}
+      {generatedPoints.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-xl border-0">
+          <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">
+            Your Speaking Points
+          </h3>
+          <div className="space-y-4">
+            {generatedPoints.map((point, index) => (
+              <div
+                key={index}
+                className="p-4 bg-slate-50 dark:bg-gray-700 rounded-lg border-l-4 border-teal-500"
+              >
+                <p className="text-slate-700 dark:text-slate-300">{point}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
