@@ -50,4 +50,49 @@ router.get('/stats', authenticateToken, requireAdmin, async (req: AuthenticatedR
   }
 });
 
+// Get user usage report
+router.get('/user-usage-report', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const report = await adminService.getUserUsageReport();
+    return res.json(report);
+  } catch (error) {
+    console.error('Error fetching user usage report:', error);
+    return res.status(500).json({ error: 'Failed to fetch user usage report' });
+  }
+});
+
+// Get top users
+router.get('/top-users', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 10;
+    const topUsers = await adminService.getTopUsers(limit);
+    return res.json(topUsers);
+  } catch (error) {
+    console.error('Error fetching top users:', error);
+    return res.status(500).json({ error: 'Failed to fetch top users' });
+  }
+});
+
+// Get detailed analytics
+router.get('/analytics', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const analytics = await adminService.getDetailedAnalytics();
+    return res.json(analytics);
+  } catch (error) {
+    console.error('Error fetching detailed analytics:', error);
+    return res.status(500).json({ error: 'Failed to fetch detailed analytics' });
+  }
+});
+
+// Get feedback statistics
+router.get('/feedback-stats', authenticateToken, requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const stats = await adminService.getFeedbackStats();
+    return res.json(stats);
+  } catch (error) {
+    console.error('Error fetching feedback stats:', error);
+    return res.status(500).json({ error: 'Failed to fetch feedback statistics' });
+  }
+});
+
 export default router;

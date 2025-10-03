@@ -4,10 +4,10 @@ export async function seed(knex: Knex): Promise<void> {
   // Create admin user
   await knex('users').insert([
     {
-      email: 'kulkarni.madhwaraj@gmail.com',
+      email: 'admin@speakeasy.com',
       role: 'admin',
-      first_name: 'Madhwaraj',
-      last_name: 'Kulkarni',
+      first_name: 'Admin',
+      last_name: 'User',
       created_at: new Date(),
       updated_at: new Date(),
     },

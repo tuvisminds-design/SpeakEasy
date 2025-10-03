@@ -35,6 +35,38 @@ export interface AISettings {
   updated_at: Date;
 }
 
+export interface AppFeedback {
+  id: number;
+  user_email: string;
+  feedback_text: string;
+  rating: number;
+  feedback_type: 'general' | 'bug' | 'feature' | 'improvement';
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ResponseFeedback {
+  id: number;
+  conversation_id: number;
+  user_email: string;
+  rating: number;
+  correction_text?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface SubmitAppFeedbackRequest {
+  feedback_text: string;
+  rating: number;
+  feedback_type?: 'general' | 'bug' | 'feature' | 'improvement';
+}
+
+export interface SubmitResponseFeedbackRequest {
+  conversation_id: number;
+  rating: number;
+  correction_text?: string;
+}
+
 export interface SendOTPRequest {
   email: string;
 }

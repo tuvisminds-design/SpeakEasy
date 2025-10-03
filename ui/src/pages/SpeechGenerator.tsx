@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { BoltIcon, TargetIcon, QuestionIcon, TimeIcon } from "../icons";
+import { BoltIcon, TargetIcon, QuestionIcon, TimeIcon, HeartIcon } from "../icons";
 import { apiService } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import AppFeedbackModal from "../components/feedback/AppFeedbackModal";
+import ResponseFeedback from "../components/feedback/ResponseFeedback";
 
 const SpeechGenerator = () => {
   const [speechTopic, setSpeechTopic] = useState("");
@@ -10,6 +12,8 @@ const SpeechGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPoints, setGeneratedPoints] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<number | null>(null);
+  const [showAppFeedbackModal, setShowAppFeedbackModal] = useState(false);
   const { isAuthenticated } = useAuth();
 
   const suggestedTopics = [
@@ -39,6 +43,7 @@ const SpeechGenerator = () => {
     try {
       const result = await apiService.generateSpeech(speechTopic, speechType, duration);
       setGeneratedPoints(result.speaking_points);
+      setConversationId(result.conversation_id);
     } catch (error) {
       console.error('Error generating speech:', error);
       setError(error instanceof Error ? error.message : 'Failed to generate speech. Please try again.');
@@ -51,11 +56,20 @@ const SpeechGenerator = () => {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <BoltIcon className="w-8 h-8 text-teal-600" />
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Speech Generator
-          </h1>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <BoltIcon className="w-8 h-8 text-teal-600" />
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+              Speech Generator
+            </h1>
+          </div>
+          <button
+            onClick={() => setShowAppFeedbackModal(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm bg-white dark:bg-gray-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-600 transition-colors"
+          >
+            <HeartIcon className="w-4 h-4" />
+            Share Feedback
+          </button>
         </div>
         <p className="text-lg text-slate-600 dark:text-slate-300">
           Transform any topic into compelling speaking points using proven frameworks and AI-powered insights.
@@ -261,8 +275,29 @@ const SpeechGenerator = () => {
               </div>
             ))}
           </div>
+          
+          {/* Response Feedback Component */}
+          {conversationId && (
+            <ResponseFeedback 
+              conversationId={conversationId}
+              onFeedbackSubmitted={() => {
+                // Optional: Show success message or update UI
+                console.log('Feedback submitted successfully');
+              }}
+            />
+          )}
         </div>
       )}
+
+      {/* App Feedback Modal */}
+      <AppFeedbackModal
+        isOpen={showAppFeedbackModal}
+        onClose={() => setShowAppFeedbackModal(false)}
+        onSuccess={() => {
+          // Optional: Show success message
+          console.log('App feedback submitted successfully');
+        }}
+      />
     </div>
   );
 };

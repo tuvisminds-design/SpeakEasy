@@ -10,6 +10,7 @@ import { db } from './config/database';
 import authRoutes from './routes/auth';
 import conversationRoutes from './routes/conversations';
 import adminRoutes from './routes/admin';
+import feedbackRoutes from './routes/feedback';
 
 // Load environment variables
 dotenv.config();
@@ -55,6 +56,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/conversations', conversationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

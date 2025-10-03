@@ -19,6 +19,8 @@ import {
   RefreshIcon,
   SpeakEasyLogo,
   LockIcon,
+  ChartBarIcon,
+  UsersIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
@@ -30,28 +32,40 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
-const navItems: NavItem[] = [
-  {
-    icon: <MicrophoneIcon />,
-    name: "Speech Generator",
-    path: "/",
-  },
-  {
-    icon: <BookIcon />,
-    name: "Speaking Tips",
-    path: "/speaking-tips",
-  },
-  {
-    icon: <RefreshIcon />,
-    name: "Speech History",
-    path: "/speech-history",
-  },
-  {
-    icon: <UserCircleIcon />,
-    name: "Profile",
-    path: "/profile",
-  },
-];
+const getNavItems = (userRole: string): NavItem[] => {
+  const baseItems: NavItem[] = [
+    {
+      icon: <MicrophoneIcon />,
+      name: "Speech Generator",
+      path: "/",
+    },
+    {
+      icon: <BookIcon />,
+      name: "Speaking Tips",
+      path: "/speaking-tips",
+    },
+    {
+      icon: <RefreshIcon />,
+      name: "Speech History",
+      path: "/speech-history",
+    },
+    {
+      icon: <UserCircleIcon />,
+      name: "Profile",
+      path: "/profile",
+    },
+  ];
+
+  if (userRole === 'admin') {
+    baseItems.push({
+      icon: <ChartBarIcon />,
+      name: "Admin Dashboard",
+      path: "/admin",
+    });
+  }
+
+  return baseItems;
+};
 
 const othersItems: NavItem[] = [];
 
@@ -81,6 +95,8 @@ const AppSidebar: React.FC = () => {
     [location.pathname]
   );
 
+  const navItems = getNavItems(user?.role || 'user');
+
   useEffect(() => {
     let submenuMatched = false;
     ["main", "others"].forEach((menuType) => {
@@ -103,7 +119,7 @@ const AppSidebar: React.FC = () => {
     if (!submenuMatched) {
       setOpenSubmenu(null);
     }
-  }, [location, isActive]);
+  }, [location, isActive, navItems]);
 
   useEffect(() => {
     if (openSubmenu !== null) {

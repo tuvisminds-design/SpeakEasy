@@ -45,6 +45,7 @@ import { ReactComponent as ListIcon } from "./list.svg?react";
 import { ReactComponent as TableIcon } from "./table.svg?react";
 import { ReactComponent as PageIcon } from "./page.svg?react";
 import { ReactComponent as PieChartIcon } from "./pie-chart.svg?react";
+import { ReactComponent as ChartBarIcon } from "./pie-chart.svg?react"; // Using pie-chart as chart-bar for now
 import { ReactComponent as BoxCubeIcon } from "./box-cube.svg?react";
 import { ReactComponent as PlugInIcon } from "./plug-in.svg?react";
 import { ReactComponent as DocsIcon } from "./docs.svg?react";
@@ -116,6 +117,7 @@ export {
   TableIcon,
   PageIcon,
   PieChartIcon,
+  ChartBarIcon,
   BoxCubeIcon,
   PlugInIcon,
   DocsIcon,

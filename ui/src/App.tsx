@@ -7,6 +7,7 @@ import SpeechGenerator from "./pages/SpeechGenerator";
 import SpeakingTips from "./pages/SpeakingTips";
 import SpeechHistory from "./pages/SpeechHistory";
 import UserProfiles from "./pages/UserProfiles";
+import AdminDashboard from "./pages/AdminDashboard";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="/speaking-tips" element={<SpeakingTips />} />
             <Route path="/speech-history" element={<SpeechHistory />} />
             <Route path="/profile" element={<UserProfiles />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Route>
 
           {/* Auth Layout */}

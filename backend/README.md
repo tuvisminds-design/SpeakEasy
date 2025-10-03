@@ -104,8 +104,8 @@ curl -X POST http://localhost:3001/api/auth/verify-otp \
 
 ## Default Admin Account
 
-- **Email**: `kulkarni.madhwaraj@gmail.com`
-- **Name**: Madhwaraj Kulkarni
+- **Email**: `admin@speakeasy.com`
+- **Name**: Admin User
 - **Authentication**: OTP-based (no password required)
 
 ## Database Configuration

@@ -112,6 +112,61 @@ class ApiService {
       body: JSON.stringify({ provider }),
     });
   }
+
+  async getSystemStats() {
+    return this.request('/admin/stats');
+  }
+
+  async getUserUsageReport() {
+    return this.request('/admin/user-usage-report');
+  }
+
+  async getTopUsers(limit: number = 10) {
+    return this.request(`/admin/top-users?limit=${limit}`);
+  }
+
+  async getDetailedAnalytics() {
+    return this.request('/admin/analytics');
+  }
+
+  async getFeedbackStats() {
+    return this.request('/admin/feedback-stats');
+  }
+
+  // Feedback functions
+  async submitAppFeedback(feedbackText: string, rating: number, feedbackType: string = 'general') {
+    return this.request('/feedback/app', {
+      method: 'POST',
+      body: JSON.stringify({
+        feedback_text: feedbackText,
+        rating,
+        feedback_type: feedbackType,
+      }),
+    });
+  }
+
+  async submitResponseFeedback(conversationId: number, rating: number, correctionText?: string) {
+    return this.request('/feedback/response', {
+      method: 'POST',
+      body: JSON.stringify({
+        conversation_id: conversationId,
+        rating,
+        correction_text: correctionText || '',
+      }),
+    });
+  }
+
+  async getAppFeedback() {
+    return this.request('/feedback/app');
+  }
+
+  async getResponseFeedback() {
+    return this.request('/feedback/response');
+  }
+
+  async getResponseFeedbackForConversation(conversationId: number) {
+    return this.request(`/feedback/response/${conversationId}`);
+  }
 }
 
 export const apiService = new ApiService();
