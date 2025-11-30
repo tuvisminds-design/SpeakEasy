@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speakeasy Controller</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.running {
+            background: #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        .status-indicator.stopped {
+            background: #ef4444;
+            animation: none;
+        }
+
+        .status-indicator.starting {
+            background: #f59e0b;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .status-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .status-message {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-refresh {
+            background: #f3f4f6;
+            color: #333;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-refresh:hover:not(:disabled) {
+            background: #e5e7eb;
+        }
+
+        .log-container {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #10b981;
+            margin-top: 20px;
+        }
+
+        .log-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .log-container::-webkit-scrollbar-track {
+            background: #0f172a;
+            border-radius: 3px;
+        }
+
+        .log-container::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+
+        .log-container::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .log-line {
+            margin-bottom: 4px;
+            word-break: break-all;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .icon {
+            width: 18px;
+            height: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 Speakeasy Controller</h1>
+            <p>Manage your local React application</p>
+        </div>
+
+        <div class="status-card">
+            <div class="status-text">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <span id="statusText">Checking status...</span>
+            </div>
+            <div class="status-message" id="statusMessage">Please wait...</div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn btn-start" id="startBtn">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Start App
+            </button>
+            <button class="btn btn-stop" id="stopBtn">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6v4H9z"></path>
+                </svg>
+                Stop App
+            </button>
+        </div>
+
+        <button class="btn btn-refresh" id="refreshBtn" style="width: 100%;">
+            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            Refresh Status
+        </button>
+
+        <div class="log-container" id="logContainer" style="display: none;">
+            <div class="log-line">Logs will appear here...</div>
+        </div>
+
+        <div class="footer">
+            <a href="http://localhost:3000" target="_blank" id="appLink" style="display: none;">Open Application →</a>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const statusMessage = document.getElementById('statusMessage');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const logContainer = document.getElementById('logContainer');
+        const appLink = document.getElementById('appLink');
+
+        let currentStatus = 'unknown';
+
+        function updateStatus(status, message) {
+            currentStatus = status;
+            statusIndicator.className = `status-indicator ${status}`;
+            
+            switch(status) {
+                case 'running':
+                    statusText.textContent = 'Running';
+                    statusMessage.textContent = message || 'React app is running on port 3000';
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    appLink.style.display = 'block';
+                    break;
+                case 'stopped':
+                    statusText.textContent = 'Stopped';
+                    statusMessage.textContent = message || 'React app is not running';
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    appLink.style.display = 'none';
+                    break;
+                case 'starting':
+                    statusText.textContent = 'Starting...';
+                    statusMessage.textContent = message || 'Starting React development server...';
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    appLink.style.display = 'none';
+                    break;
+            }
+        }
+
+        // IPC listeners
+        ipcRenderer.on('status-update', (event, data) => {
+            updateStatus(data.status, data.message);
+        });
+
+        ipcRenderer.on('log-output', (event, data) => {
+            if (logContainer.style.display === 'none') {
+                logContainer.style.display = 'block';
+            }
+            const logLine = document.createElement('div');
+            logLine.className = 'log-line';
+            logLine.textContent = data.trim();
+            logContainer.appendChild(logLine);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        });
+
+        // Button handlers
+        startBtn.addEventListener('click', () => {
+            ipcRenderer.send('start-app');
+            updateStatus('starting', 'Starting React app...');
+            logContainer.innerHTML = '<div class="log-line">Starting React development server...</div>';
+            logContainer.style.display = 'block';
+        });
+
+        stopBtn.addEventListener('click', () => {
+            ipcRenderer.send('stop-app');
+            updateStatus('stopped', 'Stopping React app...');
+            logContainer.innerHTML = '<div class="log-line">Stopping React development server...</div>';
+        });
+
+        refreshBtn.addEventListener('click', () => {
+            ipcRenderer.send('check-status');
+        });
+
+        // Initial status check
+        ipcRenderer.send('check-status');
+    </script>
+</body>
+</html>
+
+

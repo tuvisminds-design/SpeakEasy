@@ -1,0 +1,41 @@
+{
+  "name": "speakeasy",
+  "version": "1.0.0",
+  "description": "A public speaking bot that helps anyone become a better speaker using the PREP framework",
+  "main": "index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "controller": "electron controller/main.js"
+  },
+  "dependencies": {
+    "@deepgram/sdk": "^3.5.0",
+    "@tailwindcss/postcss": "^4.1.17",
+    "framer-motion": "^10.16.4",
+    "lucide-react": "^0.263.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.17",
+    "electron": "^28.3.3",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.18",
+    "ws": "^8.18.3"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
