@@ -7,6 +7,10 @@ A friendly Python bot that greets users and guides them through the pre-app surv
 import tkinter as tk
 from tkinter import ttk, messagebox
 import json
+import webbrowser
+import subprocess
+import sys
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -132,6 +136,7 @@ class MicoSurveyBot:
         self.current_question = 0
         self.answers = {}
         self.points = 0
+        self.survey_completed = False
         
         self.show_greeting()
     
@@ -168,9 +173,19 @@ class MicoSurveyBot:
         greeting_frame = tk.Frame(self.root, bg="#f0fdf4")
         greeting_frame.pack(pady=20)
         
+        # Get current time for greeting
+        from datetime import datetime
+        current_hour = datetime.now().hour
+        if current_hour < 12:
+            greeting = "Good morning"
+        elif current_hour < 18:
+            greeting = "Good afternoon"
+        else:
+            greeting = "Good evening"
+        
         greeting_title = tk.Label(
             greeting_frame,
-            text="👋 Hello! I'm MICO!",
+            text=f"👋 {greeting}! I'm MICO!",
             font=("Arial", 24, "bold"),
             bg="#f0fdf4",
             fg="#166534"
@@ -179,8 +194,8 @@ class MicoSurveyBot:
         
         greeting_text = tk.Label(
             greeting_frame,
-            text="Your friendly speaking coach wants to know you better!\n"
-                 "I'll guide you through a quick survey to help personalize your Speakeasy experience.",
+            text=f"{greeting}! Let's start with a short survey to assess your current needs.\n"
+                 "I'll guide you through a quick assessment to help personalize your Speakeasy experience.",
             font=("Arial", 12),
             bg="#f0fdf4",
             fg="#065f46",
@@ -558,9 +573,110 @@ class MicoSurveyBot:
         messagebox.showinfo("Results Saved", f"Survey results saved to:\n{filename}")
     
     def close_bot(self):
-        """Close the bot"""
+        """Close the bot after marking completion"""
+        # Mark survey as completed
+        self.mark_survey_completed()
+        
+        # Save results before closing
+        if self.answers:
+            scores = self.calculate_scores()
+            overall_score = (scores['need']['percentage'] + scores['frequency']['percentage'] + scores['recommend']['percentage']) / 3
+            self.save_results(scores, overall_score)
+        
+        # Show completion message
+        messagebox.showinfo(
+            "Survey Complete!",
+            "Thank you for completing the survey!\n\n"
+            "Your results have been saved.\n"
+            "Return to the browser to continue to Speakeasy."
+        )
+        
+        # Close the bot window
         self.root.quit()
         self.root.destroy()
+    
+    def mark_survey_completed(self):
+        """Mark survey as completed by creating flag files"""
+        # Create flag file in project root
+        survey_flag_file = Path("survey_completed.flag")
+        try:
+            with open(survey_flag_file, 'w') as f:
+                json.dump({
+                    'completed': True,
+                    'timestamp': datetime.now().isoformat(),
+                    'answers_count': len(self.answers)
+                }, f)
+            self.survey_completed = True
+        except Exception as e:
+            print(f"Warning: Could not create survey flag file: {e}")
+        
+        # Also save to public folder for React app to access
+        public_dir = Path("public")
+        if public_dir.exists():
+            public_flag_file = public_dir / "survey-status.json"
+            try:
+                with open(public_flag_file, 'w') as f:
+                    json.dump({
+                        'completed': True,
+                        'timestamp': datetime.now().isoformat(),
+                        'answers_count': len(self.answers),
+                        'completed_via': 'python_bot'
+                    }, f)
+            except Exception as e:
+                print(f"Warning: Could not create public survey status file: {e}")
+    
+    def launch_speakeasy_app(self):
+        """Launch the Speakeasy React application"""
+        try:
+            # Check if React app is already running
+            import socket
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex(('localhost', 3000))
+            sock.close()
+            
+            if result == 0:
+                # Port 3000 is open, app is likely running
+                print("Speakeasy app appears to be running. Opening in browser...")
+                webbrowser.open('http://localhost:3000')
+            else:
+                # App is not running, start it
+                print("Starting Speakeasy application...")
+                project_root = Path(__file__).parent
+                
+                # Determine the command based on OS
+                if sys.platform == 'win32':
+                    # Windows
+                    subprocess.Popen(
+                        ['npm.cmd', 'start'],
+                        cwd=str(project_root),
+                        shell=True,
+                        creationflags=subprocess.CREATE_NEW_CONSOLE
+                    )
+                else:
+                    # Unix-like (Linux, macOS)
+                    subprocess.Popen(
+                        ['npm', 'start'],
+                        cwd=str(project_root),
+                        shell=True,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )
+                
+                # Wait a bit for the server to start, then open browser
+                import time
+                time.sleep(5)  # Give React app time to start
+                webbrowser.open('http://localhost:3000')
+                
+        except Exception as e:
+            messagebox.showerror(
+                "Launch Error",
+                f"Could not launch Speakeasy app automatically.\n\n"
+                f"Error: {str(e)}\n\n"
+                f"Please start the app manually:\n"
+                f"1. Open terminal in: {Path(__file__).parent}\n"
+                f"2. Run: npm start\n"
+                f"3. Open: http://localhost:3000"
+            )
 
 
 def main():

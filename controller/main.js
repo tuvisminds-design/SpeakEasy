@@ -192,6 +192,14 @@ function startHRBackend() {
           message: 'HR Backend started successfully!' 
         });
       }
+      
+      // Auto-start React app when backend is ready (for seamless survey flow)
+      if (!isSpeakeasyRunning && !reactProcess) {
+        console.log('Auto-starting SpeakEasy app after backend startup...');
+        setTimeout(() => {
+          startSpeakeasyApp();
+        }, 2000); // Wait 2 seconds for backend to fully initialize
+      }
     }
     
     if (mainWindow) {

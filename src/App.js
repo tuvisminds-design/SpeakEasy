@@ -10,10 +10,392 @@ import axios from 'axios';
 import deepgramVoiceAgent from './services/deepgramVoiceAgent';
 import Login from './components/Login';
 import PreEvaluationTest from './components/PreEvaluationTest';
+import PythonBotSurvey from './components/PythonBotSurvey';
 import MicoCharacter from './components/MicoCharacter';
 import ResumeUploadHR from './components/ResumeUploadHR';
 import InterviewSchedulingHR from './components/InterviewSchedulingHR';
 import InterviewTrainingHR from './components/InterviewTrainingHR';
+
+// Speaking Tips Page - moved outside App to prevent redefinition
+const SpeakingTipsPage = memo(() => {
+  const tipsCategories = [
+    {
+      icon: Eye,
+      iconColor: 'text-blue-500',
+      iconBg: 'bg-blue-100',
+      title: 'Body Language',
+      tips: [
+        'Maintain eye contact with different sections of your audience',
+        'Use open gestures and avoid crossing your arms',
+        'Stand tall with shoulders back to project confidence',
+        'Move purposefully - avoid pacing or swaying'
+      ]
+    },
+    {
+      icon: Volume2,
+      iconColor: 'text-green-500',
+      iconBg: 'bg-green-100',
+      title: 'Voice & Delivery',
+      tips: [
+        'Speak slower than you think you should',
+        'Vary your tone to maintain interest',
+        'Use strategic pauses for emphasis',
+        'Project your voice to the back of the room'
+      ]
+    },
+    {
+      icon: Users,
+      iconColor: 'text-purple-500',
+      iconBg: 'bg-purple-100',
+      title: 'Audience Engagement',
+      tips: [
+        'Start with a compelling hook or question',
+        'Tell stories to make your points memorable',
+        'Ask rhetorical questions to involve your audience',
+        'Use \'you\' language to create connection'
+      ]
+    },
+    {
+      icon: Heart,
+      iconColor: 'text-red-500',
+      iconBg: 'bg-red-100',
+      title: 'Managing Nerves',
+      tips: [
+        'Practice deep breathing before speaking',
+        'Visualize success before your presentation',
+        'Remember that nerves are normal and can be helpful',
+        'Focus on your message, not your anxiety'
+      ]
+    },
+    {
+      icon: Timer,
+      iconColor: 'text-orange-500',
+      iconBg: 'bg-orange-100',
+      title: 'Time Management',
+      tips: [
+        'Practice with a timer to stay within limits',
+        'Plan buffer time for questions and transitions',
+        'Prioritize key points if running short on time',
+        'Know which sections can be shortened if needed'
+      ]
+    },
+    {
+      icon: Target,
+      iconColor: 'text-teal-500',
+      iconBg: 'bg-teal-100',
+      title: 'Content Structure',
+      tips: [
+        'Follow a clear introduction-body-conclusion format',
+        'Use the PREP framework for impromptu speeches',
+        'Support each point with evidence or examples',
+        'End with a strong call to action or takeaway'
+      ]
+    }
+  ];
+
+  return (
+    <div className="max-w-6xl mx-auto">
+      <div className="flex items-center gap-4 mb-8">
+        <BookOpen className="w-8 h-8 text-teal-500" />
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Speaking Tips</h1>
+          <p className="text-gray-600">Master these tips to become a confident speaker</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {tipsCategories.map((category, index) => {
+          const IconComponent = category.icon;
+          return (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <div className={`w-12 h-12 ${category.iconBg} rounded-lg flex items-center justify-center`}>
+                  <IconComponent className={`w-6 h-6 ${category.iconColor}`} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900">{category.title}</h3>
+                  <p className="text-sm text-gray-500">{category.tips.length} tips</p>
+                </div>
+              </div>
+              <ul className="space-y-2">
+                {category.tips.map((tip, tipIndex) => (
+                  <li key={tipIndex} className="flex items-start gap-2 text-sm text-gray-700">
+                    <CheckCircle className="w-4 h-4 text-teal-500 mt-0.5 flex-shrink-0" />
+                    <span>{tip}</span>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+});
+
+// Speech History Page - moved outside App to prevent redefinition
+const SpeechHistoryPage = memo(({ 
+  speechHistory, 
+  setSpeechStructure, 
+  setActivePage,
+  setSpeechType 
+}) => {
+  const [selectedSpeech, setSelectedSpeech] = useState(null);
+
+  // Calculate estimated duration based on sections
+  const getEstimatedDuration = (sections) => {
+    const totalMinutes = sections.reduce((acc, section) => {
+      const timeStr = section.timeAllocation || '1 min';
+      // Parse time strings like "30 seconds", "1-2 minutes", "2-3 minutes"
+      const match = timeStr.match(/(\d+)(?:-(\d+))?\s*(min|minute|sec|second)/i);
+      if (match) {
+        const unit = match[3].toLowerCase();
+        const min = parseInt(match[1]) || 0;
+        const max = parseInt(match[2]) || min;
+        const avg = (min + max) / 2;
+        // Convert seconds to minutes
+        if (unit.startsWith('sec')) {
+          return acc + (avg / 60);
+        }
+        return acc + avg;
+      }
+      // Fallback: try to extract any number
+      const numMatch = timeStr.match(/(\d+)/);
+      return acc + (numMatch ? parseInt(numMatch[1]) : 1);
+    }, 0);
+    return Math.round(totalMinutes);
+  };
+
+  // Format date as "Oct 27, 2025"
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  };
+
+  // Sample speeches for demonstration (if history is empty, show sample data)
+  const displayHistory = speechHistory.length > 0 ? speechHistory : [
+    {
+      id: 1,
+      topic: 'The importance of work-life balance',
+      type: 'impromptu',
+      sections: [
+        { 
+          title: 'Point', 
+          timeAllocation: '30 seconds',
+          description: 'State your main point clearly and concisely',
+          content: 'Work-life balance is essential for long-term success and well-being.'
+        },
+        { 
+          title: 'Reason', 
+          timeAllocation: '1-2 minutes',
+          description: 'Explain why your point matters',
+          content: 'Without balance, we risk burnout, decreased productivity, and damaged relationships.'
+        },
+        { 
+          title: 'Example', 
+          timeAllocation: '2-3 minutes',
+          description: 'Provide concrete examples or stories',
+          content: 'Consider a professional who works 80-hour weeks and eventually experiences health issues and family strain.'
+        },
+        { 
+          title: 'Point (Reiteration)', 
+          timeAllocation: '30 seconds',
+          description: 'Restate your main point with impact',
+          content: 'Prioritizing work-life balance leads to sustainable success and personal fulfillment.'
+        }
+      ],
+      createdAt: new Date('2025-10-27').toISOString()
+    },
+    {
+      id: 2,
+      topic: 'User based design principles',
+      type: 'impromptu',
+      sections: [
+        { 
+          title: 'Point', 
+          timeAllocation: '30 seconds',
+          description: 'State your main point clearly and concisely',
+          content: 'User-centered design puts the user at the heart of every decision.'
+        },
+        { 
+          title: 'Reason', 
+          timeAllocation: '1-2 minutes',
+          description: 'Explain why your point matters',
+          content: 'Designs that prioritize user needs result in more intuitive, successful products.'
+        },
+        { 
+          title: 'Example', 
+          timeAllocation: '2-3 minutes',
+          description: 'Provide concrete examples or stories',
+          content: 'Companies like Apple and Airbnb succeed because they deeply understand their users\' needs and pain points.'
+        },
+        { 
+          title: 'Point (Reiteration)', 
+          timeAllocation: '30 seconds',
+          description: 'Restate your main point with impact',
+          content: 'Always design with the user in mind for products that truly resonate.'
+        }
+      ],
+      createdAt: new Date('2025-10-23').toISOString()
+    },
+    {
+      id: 3,
+      topic: 'AI advent good or bad?',
+      type: 'impromptu',
+      sections: [
+        { 
+          title: 'Point', 
+          timeAllocation: '30 seconds',
+          description: 'State your main point clearly and concisely',
+          content: 'AI presents both incredible opportunities and significant challenges.'
+        },
+        { 
+          title: 'Reason', 
+          timeAllocation: '1-2 minutes',
+          description: 'Explain why your point matters',
+          content: 'AI can revolutionize industries but also disrupt jobs and raise ethical concerns.'
+        },
+        { 
+          title: 'Example', 
+          timeAllocation: '2-3 minutes',
+          description: 'Provide concrete examples or stories',
+          content: 'AI helps doctors diagnose diseases faster, but automation also displaces workers in manufacturing.'
+        },
+        { 
+          title: 'Point (Reiteration)', 
+          timeAllocation: '30 seconds',
+          description: 'Restate your main point with impact',
+          content: 'The key is responsible AI development that maximizes benefits while minimizing harm.'
+        }
+      ],
+      createdAt: new Date('2025-10-09').toISOString()
+    }
+  ];
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+          <RefreshCw className="w-6 h-6 text-purple-600" />
+        </div>
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-gray-900">Speech History</h1>
+          <p className="text-gray-600 mt-1">Review and revisit your previously generated speaking points</p>
+        </div>
+      </div>
+      
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-250px)]">
+        {/* Left Panel - Speech List */}
+        <div className="bg-white rounded-xl border border-gray-200 flex flex-col">
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Your Speeches ({displayHistory.length})
+            </h2>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {displayHistory.map((speech) => {
+              const duration = getEstimatedDuration(speech.sections);
+              const isSelected = selectedSpeech?.id === speech.id;
+              
+              return (
+                <motion.div
+                  key={speech.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                    isSelected
+                      ? 'border-teal-500 bg-teal-50'
+                      : 'border-gray-200 hover:border-gray-300 bg-white'
+                  }`}
+                  onClick={() => setSelectedSpeech(speech)}
+                >
+                  <h3 className="font-semibold text-gray-900 mb-2">{speech.topic}</h3>
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <span>{formatDate(speech.createdAt)}</span>
+                    <span className="px-2 py-0.5 bg-teal-100 text-teal-700 rounded text-xs font-medium">
+                      {speech.type === 'planned' ? 'Planned' : 'PREP'}
+                    </span>
+                    <span className="text-gray-500">{duration}min</span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right Panel - Speech Details */}
+        <div className="bg-white rounded-xl border border-gray-200 flex flex-col">
+          {selectedSpeech ? (
+            <>
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedSpeech.topic}</h2>
+                <div className="flex items-center gap-3 text-sm text-gray-600">
+                  <span>{formatDate(selectedSpeech.createdAt)}</span>
+                  <span className="px-2 py-0.5 bg-teal-100 text-teal-700 rounded text-xs font-medium">
+                    {selectedSpeech.type === 'planned' ? 'Planned Presentation' : 'PREP Framework'}
+                  </span>
+                  <span className="text-gray-500">{getEstimatedDuration(selectedSpeech.sections)}min</span>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-4">
+                  {selectedSpeech.sections.map((section, index) => (
+                    <div key={index} className="border-b border-gray-100 pb-4 last:border-b-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-gray-900">{section.title}</h3>
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          {section.timeAllocation}
+                        </span>
+                      </div>
+                      {section.description && (
+                        <p className="text-sm text-gray-600 mb-2">{section.description}</p>
+                      )}
+                      {section.content && (
+                        <p className="text-sm text-gray-700">{section.content}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-6">
+                <button
+                  onClick={() => {
+                    setSpeechStructure({
+                      topic: selectedSpeech.topic,
+                      type: selectedSpeech.type,
+                      sections: selectedSpeech.sections
+                    });
+                    setSpeechType(selectedSpeech.type);
+                    setActivePage('generator');
+                  }}
+                  className="w-full py-3 px-6 bg-teal-500 text-white rounded-lg font-medium hover:bg-teal-600 transition-colors"
+                >
+                  View Full Speech
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center p-8">
+              <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                <Eye className="w-12 h-12 text-purple-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Select a Speech</h3>
+              <p className="text-gray-500 text-center">Choose a speech from the list to view its details</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -23,6 +405,7 @@ const App = () => {
     // Check if user has already completed the test (stored in localStorage)
     return localStorage.getItem('speakeasy_test_completed') === 'true';
   });
+  const [botLaunched, setBotLaunched] = useState(false);
   const [activePage, setActivePage] = useState('generator');
   const [topic, setTopic] = useState('');
   const [speechType, setSpeechType] = useState('');
@@ -407,7 +790,8 @@ const App = () => {
     stopVoiceInput,
     transcript,
     voiceError,
-    topicSuggestions
+    topicSuggestions,
+    handleLogout
   }) => (
     <div className="max-w-4xl mx-auto">
       {/* Header with MICO */}
@@ -415,9 +799,19 @@ const App = () => {
         <div className="flex items-center gap-4 mb-4">
           <MicoCharacter animation="pointing" size="medium" />
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <Sparkles className="w-8 h-8 text-teal-500" />
-              <h1 className="text-3xl font-bold text-gray-900">Speech Generator</h1>
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-8 h-8 text-teal-500" />
+                <h1 className="text-3xl font-bold text-gray-900">Speech Generator</h1>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg transform hover:scale-105"
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
+              </button>
             </div>
             <p className="text-gray-600 text-lg">
               Transform any topic into compelling speaking points using proven frameworks and AI-powered insights.
@@ -784,386 +1178,6 @@ const App = () => {
     }
   }, [speechStructure, speechType]);
 
-  // Speaking Tips Page - memoized
-  const SpeakingTipsPage = memo(() => {
-    const tipsCategories = [
-      {
-        icon: Eye,
-        iconColor: 'text-blue-500',
-        iconBg: 'bg-blue-100',
-        title: 'Body Language',
-        tips: [
-          'Maintain eye contact with different sections of your audience',
-          'Use open gestures and avoid crossing your arms',
-          'Stand tall with shoulders back to project confidence',
-          'Move purposefully - avoid pacing or swaying'
-        ]
-      },
-      {
-        icon: Volume2,
-        iconColor: 'text-green-500',
-        iconBg: 'bg-green-100',
-        title: 'Voice & Delivery',
-        tips: [
-          'Speak slower than you think you should',
-          'Vary your tone to maintain interest',
-          'Use strategic pauses for emphasis',
-          'Project your voice to the back of the room'
-        ]
-      },
-      {
-        icon: Users,
-        iconColor: 'text-purple-500',
-        iconBg: 'bg-purple-100',
-        title: 'Audience Engagement',
-        tips: [
-          'Start with a compelling hook or question',
-          'Tell stories to make your points memorable',
-          'Ask rhetorical questions to involve your audience',
-          'Use \'you\' language to create connection'
-        ]
-      },
-      {
-        icon: Heart,
-        iconColor: 'text-red-500',
-        iconBg: 'bg-red-100',
-        title: 'Managing Nerves',
-        tips: [
-          'Practice deep breathing before speaking',
-          'Visualize success before your presentation',
-          'Remember that nerves are normal and can be helpful',
-          'Focus on your message, not your anxiety'
-        ]
-      },
-      {
-        icon: Timer,
-        iconColor: 'text-orange-500',
-        iconBg: 'bg-orange-100',
-        title: 'Time Management',
-        tips: [
-          'Practice with a timer to stay within limits',
-          'Plan buffer time for questions and transitions',
-          'Prioritize key points if running short on time',
-          'Know which sections can be shortened if needed'
-        ]
-      },
-      {
-        icon: Target,
-        iconColor: 'text-teal-500',
-        iconBg: 'bg-teal-100',
-        title: 'Content Structure',
-        tips: [
-          'Follow a clear introduction-body-conclusion format',
-          'Use the PREP framework for impromptu speeches',
-          'Support each point with evidence or examples',
-          'End with a strong call to action or takeaway'
-        ]
-      }
-    ];
-
-    return (
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <BookOpen className="w-8 h-8 text-teal-500" />
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Speaking Tips</h1>
-            <p className="text-gray-600">Master these tips to become a confident speaker</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tipsCategories.map((category, index) => {
-            const IconComponent = category.icon;
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-shadow"
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className={`w-12 h-12 ${category.iconBg} rounded-lg flex items-center justify-center`}>
-                    <IconComponent className={`w-6 h-6 ${category.iconColor}`} />
-      </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">{category.title}</h3>
-                    <p className="text-sm text-gray-500">{category.tips.length} tips</p>
-                  </div>
-                </div>
-                <ul className="space-y-2">
-                  {category.tips.map((tip, tipIndex) => (
-                    <li key={tipIndex} className="flex items-start gap-2 text-sm text-gray-700">
-                      <CheckCircle className="w-4 h-4 text-teal-500 mt-0.5 flex-shrink-0" />
-                      <span>{tip}</span>
-            </li>
-                  ))}
-          </ul>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  });
-
-  // Speech History Page - memoized with props
-  const SpeechHistoryPage = memo(({ 
-    speechHistory, 
-    setSpeechStructure, 
-    setActivePage,
-    setSpeechType 
-  }) => {
-    const [selectedSpeech, setSelectedSpeech] = useState(null);
-
-    // Calculate estimated duration based on sections
-    const getEstimatedDuration = (sections) => {
-      const totalMinutes = sections.reduce((acc, section) => {
-        const timeStr = section.timeAllocation || '1 min';
-        // Parse time strings like "30 seconds", "1-2 minutes", "2-3 minutes"
-        const match = timeStr.match(/(\d+)(?:-(\d+))?\s*(min|minute|sec|second)/i);
-        if (match) {
-          const unit = match[3].toLowerCase();
-          const min = parseInt(match[1]) || 0;
-          const max = parseInt(match[2]) || min;
-          const avg = (min + max) / 2;
-          // Convert seconds to minutes
-          if (unit.startsWith('sec')) {
-            return acc + (avg / 60);
-          }
-          return acc + avg;
-        }
-        // Fallback: try to extract any number
-        const numMatch = timeStr.match(/(\d+)/);
-        return acc + (numMatch ? parseInt(numMatch[1]) : 1);
-      }, 0);
-      return Math.round(totalMinutes);
-    };
-
-    // Format date as "Oct 27, 2025"
-    const formatDate = (dateString) => {
-      const date = new Date(dateString);
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
-    };
-
-    // Sample speeches for demonstration (if history is empty, show sample data)
-    const displayHistory = speechHistory.length > 0 ? speechHistory : [
-      {
-        id: 1,
-        topic: 'The importance of work-life balance',
-        type: 'impromptu',
-        sections: [
-          { 
-            title: 'Point', 
-            timeAllocation: '30 seconds',
-            description: 'State your main point clearly and concisely',
-            content: 'Work-life balance is essential for long-term success and well-being.'
-          },
-          { 
-            title: 'Reason', 
-            timeAllocation: '1-2 minutes',
-            description: 'Explain why your point matters',
-            content: 'Without balance, we risk burnout, decreased productivity, and damaged relationships.'
-          },
-          { 
-            title: 'Example', 
-            timeAllocation: '2-3 minutes',
-            description: 'Provide concrete examples or stories',
-            content: 'Consider a professional who works 80-hour weeks and eventually experiences health issues and family strain.'
-          },
-          { 
-            title: 'Point (Reiteration)', 
-            timeAllocation: '30 seconds',
-            description: 'Restate your main point with impact',
-            content: 'Prioritizing work-life balance leads to sustainable success and personal fulfillment.'
-          }
-        ],
-        createdAt: new Date('2025-10-27').toISOString()
-      },
-      {
-        id: 2,
-        topic: 'User based design principles',
-        type: 'impromptu',
-        sections: [
-          { 
-            title: 'Point', 
-            timeAllocation: '30 seconds',
-            description: 'State your main point clearly and concisely',
-            content: 'User-centered design puts the user at the heart of every decision.'
-          },
-          { 
-            title: 'Reason', 
-            timeAllocation: '1-2 minutes',
-            description: 'Explain why your point matters',
-            content: 'Designs that prioritize user needs result in more intuitive, successful products.'
-          },
-          { 
-            title: 'Example', 
-            timeAllocation: '2-3 minutes',
-            description: 'Provide concrete examples or stories',
-            content: 'Companies like Apple and Airbnb succeed because they deeply understand their users\' needs and pain points.'
-          },
-          { 
-            title: 'Point (Reiteration)', 
-            timeAllocation: '30 seconds',
-            description: 'Restate your main point with impact',
-            content: 'Always design with the user in mind for products that truly resonate.'
-          }
-        ],
-        createdAt: new Date('2025-10-23').toISOString()
-      },
-      {
-        id: 3,
-        topic: 'AI advent good or bad?',
-        type: 'impromptu',
-        sections: [
-          { 
-            title: 'Point', 
-            timeAllocation: '30 seconds',
-            description: 'State your main point clearly and concisely',
-            content: 'AI presents both incredible opportunities and significant challenges.'
-          },
-          { 
-            title: 'Reason', 
-            timeAllocation: '1-2 minutes',
-            description: 'Explain why your point matters',
-            content: 'AI can revolutionize industries but also disrupt jobs and raise ethical concerns.'
-          },
-          { 
-            title: 'Example', 
-            timeAllocation: '2-3 minutes',
-            description: 'Provide concrete examples or stories',
-            content: 'AI helps doctors diagnose diseases faster, but automation also displaces workers in manufacturing.'
-          },
-          { 
-            title: 'Point (Reiteration)', 
-            timeAllocation: '30 seconds',
-            description: 'Restate your main point with impact',
-            content: 'The key is responsible AI development that maximizes benefits while minimizing harm.'
-          }
-        ],
-        createdAt: new Date('2025-10-09').toISOString()
-      }
-    ];
-
-    return (
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-            <RefreshCw className="w-6 h-6 text-purple-600" />
-          </div>
-        <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900">Speech History</h1>
-            <p className="text-gray-600 mt-1">Review and revisit your previously generated speaking points</p>
-        </div>
-      </div>
-      
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-250px)]">
-          {/* Left Panel - Speech List */}
-          <div className="bg-white rounded-xl border border-gray-200 flex flex-col">
-            <div className="p-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Your Speeches ({displayHistory.length})
-              </h2>
-        </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {displayHistory.map((speech) => {
-                const duration = getEstimatedDuration(speech.sections);
-                const isSelected = selectedSpeech?.id === speech.id;
-                
-                return (
-            <motion.div
-              key={speech.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                      isSelected
-                        ? 'border-teal-500 bg-teal-50'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
-                    onClick={() => setSelectedSpeech(speech)}
-                  >
-                    <h3 className="font-semibold text-gray-900 mb-2">{speech.topic}</h3>
-                    <div className="flex items-center gap-3 text-sm text-gray-600">
-                      <span>{formatDate(speech.createdAt)}</span>
-                      <span className="px-2 py-0.5 bg-teal-100 text-teal-700 rounded text-xs font-medium">
-                        {speech.type === 'planned' ? 'Planned' : 'PREP'}
-                    </span>
-                      <span className="text-gray-500">{duration}min</span>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Right Panel - Speech Details */}
-          <div className="bg-white rounded-xl border border-gray-200 flex flex-col">
-            {selectedSpeech ? (
-              <>
-                <div className="p-6 border-b border-gray-200">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{selectedSpeech.topic}</h2>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <span>{formatDate(selectedSpeech.createdAt)}</span>
-                    <span className="px-2 py-0.5 bg-teal-100 text-teal-700 rounded text-xs font-medium">
-                      {selectedSpeech.type === 'planned' ? 'Planned Presentation' : 'PREP Framework'}
-                    </span>
-                    <span className="text-gray-500">{getEstimatedDuration(selectedSpeech.sections)}min</span>
-                  </div>
-                </div>
-                <div className="flex-1 overflow-y-auto p-6">
-                  <div className="space-y-4">
-                    {selectedSpeech.sections.map((section, index) => (
-                      <div key={index} className="border-b border-gray-100 pb-4 last:border-b-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-semibold text-gray-900">{section.title}</h3>
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                            {section.timeAllocation}
-                      </span>
-                        </div>
-                        {section.description && (
-                          <p className="text-sm text-gray-600 mb-2">{section.description}</p>
-                        )}
-                        {section.content && (
-                          <p className="text-sm text-gray-700">{section.content}</p>
-                    )}
-                  </div>
-                    ))}
-                </div>
-                  <div className="mt-6">
-                <button
-                      onClick={() => {
-                    setSpeechStructure({
-                          topic: selectedSpeech.topic,
-                          type: selectedSpeech.type,
-                          sections: selectedSpeech.sections
-                        });
-                        setSpeechType(selectedSpeech.type);
-                    setActivePage('generator');
-                  }}
-                      className="w-full py-3 px-6 bg-teal-500 text-white rounded-lg font-medium hover:bg-teal-600 transition-colors"
-                >
-                      View Full Speech
-        </button>
-      </div>
-                </div>
-              </>
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center p-8">
-                <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                  <Eye className="w-12 h-12 text-purple-500" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Select a Speech</h3>
-                <p className="text-gray-500 text-center">Choose a speech from the list to view its details</p>
-        </div>
-      )}
-    </div>
-        </div>
-      </div>
-    );
-  });
 
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -1175,6 +1189,7 @@ const App = () => {
     localStorage.removeItem('speakeasy_test_completed');
     setIsLoggedIn(false);
     setHasCompletedTest(false);
+    setBotLaunched(false);
     setSpeechStructure(null);
     setTopic('');
     setSpeechType('');
@@ -1186,14 +1201,36 @@ const App = () => {
     setHasCompletedTest(true);
   };
 
+  // Python API is now auto-started by backend, just mark as ready when logged in
+  useEffect(() => {
+    if (!hasCompletedTest && isLoggedIn && !botLaunched) {
+      // Python API is already running (started by backend), just mark as ready
+      // Give it a tiny moment to ensure it's fully ready
+      setTimeout(() => {
+        setBotLaunched(true);
+      }, 100);
+    }
+  }, [hasCompletedTest, isLoggedIn, botLaunched]);
+
+  // Note: Survey completion is handled directly by PythonBotSurvey component
+  // No need for polling since completion is handled via onComplete callback
+
   // Show login page if not logged in
   if (!isLoggedIn) {
     return <Login onLogin={handleLogin} />;
   }
-
-  // Show pre-evaluation test if logged in but not completed
+  
+  // Show integrated Python bot survey if logged in but survey not completed
+  // Python API is auto-started by backend, survey appears immediately after login
   if (!hasCompletedTest) {
-    return <PreEvaluationTest onComplete={handleTestComplete} />;
+    return (
+      <PythonBotSurvey 
+        onComplete={() => {
+          localStorage.setItem('speakeasy_test_completed', 'true');
+          setHasCompletedTest(true);
+        }}
+      />
+    );
   }
 
   return (
@@ -1214,6 +1251,7 @@ const App = () => {
                 speechType={speechType}
                 setSpeechType={setSpeechType}
                 isGenerating={isGenerating}
+                handleLogout={handleLogout}
                 generateSpeechStructure={generateSpeechStructure}
                 isListening={isListening}
                 startVoiceInput={startVoiceInput}

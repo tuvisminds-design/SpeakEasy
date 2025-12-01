@@ -1,0 +1,48 @@
+{
+  "timestamp": "2025-12-01T07:18:34.529124",
+  "overall_score": 76,
+  "category_scores": {
+    "need": 56,
+    "frequency": 83,
+    "recommend": 89
+  },
+  "answers": {
+    "need_1": {
+      "text": "Confident and ready",
+      "points": 5
+    },
+    "need_2": {
+      "text": "Regularly (weekly)",
+      "points": 25
+    },
+    "need_3": {
+      "text": "Forgetting what to say",
+      "points": 20
+    },
+    "frequency_1": {
+      "text": "Very likely - I'd do it daily",
+      "points": 30
+    },
+    "frequency_2": {
+      "text": "Structured lessons with a plan",
+      "points": 20
+    },
+    "frequency_3": {
+      "text": "Extremely important - I always practice",
+      "points": 25
+    },
+    "recommend_1": {
+      "text": "Extremely likely - I'd tell everyone",
+      "points": 30
+    },
+    "recommend_2": {
+      "text": "Personalized feedback and improvement",
+      "points": 25
+    },
+    "recommend_3": {
+      "text": "I actively recommend apps I love",
+      "points": 25
+    }
+  },
+  "total_points": 205
+}

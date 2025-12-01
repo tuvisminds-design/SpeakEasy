@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reset Survey</title>
+</head>
+<body>
+    <h1>Reset Speakeasy Survey</h1>
+    <p>Click the button below to clear the survey completion status.</p>
+    <button onclick="resetSurvey()" style="padding: 10px 20px; background: #14b8a6; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        Reset Survey Status
+    </button>
+    <p id="result" style="margin-top: 20px;"></p>
+    
+    <script>
+        function resetSurvey() {
+            localStorage.removeItem('speakeasy_test_completed');
+            localStorage.removeItem('speakeasy_logged_in');
+            document.getElementById('result').innerHTML = 
+                '<strong style="color: green;">✓ Survey status cleared! Refresh the app and log in again.</strong>';
+        }
+    </script>
+</body>
+</html>
+
