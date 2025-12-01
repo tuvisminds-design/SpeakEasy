@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speakeasy Controller</title>
+    <title>Speakeasy & HR Agent Controller</title>
     <style>
         * {
             margin: 0;
@@ -17,7 +17,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             padding: 20px;
         }
 
@@ -27,7 +27,9 @@
             padding: 30px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 450px;
+            max-width: 650px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .header {
@@ -46,12 +48,25 @@
             font-size: 14px;
         }
 
-        .status-card {
+        .service-card {
             background: #f8f9fa;
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 25px;
-            text-align: center;
+            margin-bottom: 20px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .service-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .service-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
         }
 
         .status-indicator {
@@ -78,45 +93,41 @@
         }
 
         @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .status-text {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
             color: #333;
             margin-bottom: 5px;
         }
 
         .status-message {
-            font-size: 13px;
+            font-size: 12px;
             color: #666;
+            margin-bottom: 15px;
         }
 
         .button-group {
             display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 10px;
         }
 
         .btn {
             flex: 1;
-            padding: 14px 24px;
+            padding: 10px 16px;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .btn:disabled {
@@ -148,45 +159,12 @@
             background: #f3f4f6;
             color: #333;
             border: 2px solid #e5e7eb;
+            width: 100%;
+            margin-top: 15px;
         }
 
         .btn-refresh:hover:not(:disabled) {
             background: #e5e7eb;
-        }
-
-        .log-container {
-            background: #1e293b;
-            border-radius: 10px;
-            padding: 15px;
-            max-height: 150px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 11px;
-            color: #10b981;
-            margin-top: 20px;
-        }
-
-        .log-container::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .log-container::-webkit-scrollbar-track {
-            background: #0f172a;
-            border-radius: 3px;
-        }
-
-        .log-container::-webkit-scrollbar-thumb {
-            background: #475569;
-            border-radius: 3px;
-        }
-
-        .log-container::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
-        }
-
-        .log-line {
-            margin-bottom: 4px;
-            word-break: break-all;
         }
 
         .footer {
@@ -194,6 +172,10 @@
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .footer a {
@@ -207,133 +189,187 @@
         }
 
         .icon {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
+        }
+
+        .log-container {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            max-height: 100px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            color: #10b981;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .log-container.show {
+            display: block;
+        }
+
+        .log-line {
+            margin-bottom: 2px;
+            word-break: break-all;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎤 Speakeasy Controller</h1>
-            <p>Manage your local React application</p>
+            <h1>🎛️ Service Controller</h1>
+            <p>Manage SpeakEasy & HR Agent Services</p>
         </div>
 
-        <div class="status-card">
-            <div class="status-text">
-                <span class="status-indicator" id="statusIndicator"></span>
-                <span id="statusText">Checking status...</span>
+        <!-- SpeakEasy Service -->
+        <div class="service-card" id="speakeasy-card">
+            <div class="service-header">
+                <div class="service-title">🎤 SpeakEasy</div>
+                <div class="status-text">
+                    <span class="status-indicator" id="speakeasy-indicator"></span>
+                    <span id="speakeasy-status">Checking...</span>
+                </div>
             </div>
-            <div class="status-message" id="statusMessage">Please wait...</div>
+            <div class="status-message" id="speakeasy-message">Please wait...</div>
+            <div class="button-group">
+                <button class="btn btn-start" id="speakeasy-start" data-service="speakeasy">Start</button>
+                <button class="btn btn-stop" id="speakeasy-stop" data-service="speakeasy" disabled>Stop</button>
+            </div>
+            <div class="log-container" id="speakeasy-logs"></div>
         </div>
 
-        <div class="button-group">
-            <button class="btn btn-start" id="startBtn">
-                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                Start App
-            </button>
-            <button class="btn btn-stop" id="stopBtn">
-                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6v4H9z"></path>
-                </svg>
-                Stop App
-            </button>
+        <!-- HR Backend Service -->
+        <div class="service-card" id="hr-backend-card">
+            <div class="service-header">
+                <div class="service-title">⚙️ HR Backend</div>
+                <div class="status-text">
+                    <span class="status-indicator" id="hr-backend-indicator"></span>
+                    <span id="hr-backend-status">Checking...</span>
+                </div>
+            </div>
+            <div class="status-message" id="hr-backend-message">Please wait...</div>
+            <div class="button-group">
+                <button class="btn btn-start" id="hr-backend-start" data-service="hr-backend">Start</button>
+                <button class="btn btn-stop" id="hr-backend-stop" data-service="hr-backend" disabled>Stop</button>
+            </div>
+            <div class="log-container" id="hr-backend-logs"></div>
         </div>
 
-        <button class="btn btn-refresh" id="refreshBtn" style="width: 100%;">
-            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-            Refresh Status
+        <!-- HR Frontend Service -->
+        <div class="service-card" id="hr-frontend-card">
+            <div class="service-header">
+                <div class="service-title">💼 HR Frontend</div>
+                <div class="status-text">
+                    <span class="status-indicator" id="hr-frontend-indicator"></span>
+                    <span id="hr-frontend-status">Checking...</span>
+                </div>
+            </div>
+            <div class="status-message" id="hr-frontend-message">Please wait...</div>
+            <div class="button-group">
+                <button class="btn btn-start" id="hr-frontend-start" data-service="hr-frontend">Start</button>
+                <button class="btn btn-stop" id="hr-frontend-stop" data-service="hr-frontend" disabled>Stop</button>
+            </div>
+            <div class="log-container" id="hr-frontend-logs"></div>
+        </div>
+
+        <button class="btn btn-refresh" id="refreshBtn">
+            🔄 Refresh All Status
         </button>
 
-        <div class="log-container" id="logContainer" style="display: none;">
-            <div class="log-line">Logs will appear here...</div>
-        </div>
-
         <div class="footer">
-            <a href="http://localhost:3000" target="_blank" id="appLink" style="display: none;">Open Application →</a>
+            <a href="http://localhost:3000" target="_blank" id="speakeasy-link" style="display: none;">SpeakEasy →</a>
+            <a href="http://localhost:5000" target="_blank" id="hr-backend-link" style="display: none;">HR API →</a>
+            <a href="http://localhost:3001" target="_blank" id="hr-frontend-link" style="display: none;">HR App →</a>
         </div>
     </div>
 
     <script>
         const { ipcRenderer } = require('electron');
 
-        const statusIndicator = document.getElementById('statusIndicator');
-        const statusText = document.getElementById('statusText');
-        const statusMessage = document.getElementById('statusMessage');
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const refreshBtn = document.getElementById('refreshBtn');
-        const logContainer = document.getElementById('logContainer');
-        const appLink = document.getElementById('appLink');
+        const services = ['speakeasy', 'hr-backend', 'hr-frontend'];
+        const serviceStatus = {};
 
-        let currentStatus = 'unknown';
+        services.forEach(service => {
+            serviceStatus[service] = 'unknown';
+        });
 
-        function updateStatus(status, message) {
-            currentStatus = status;
-            statusIndicator.className = `status-indicator ${status}`;
+        function updateServiceStatus(service, status, message) {
+            serviceStatus[service] = status;
+            const indicator = document.getElementById(`${service}-indicator`);
+            const statusText = document.getElementById(`${service}-status`);
+            const statusMessage = document.getElementById(`${service}-message`);
+            const startBtn = document.getElementById(`${service}-start`);
+            const stopBtn = document.getElementById(`${service}-stop`);
+            const link = document.getElementById(`${service}-link`);
+
+            indicator.className = `status-indicator ${status}`;
             
             switch(status) {
                 case 'running':
                     statusText.textContent = 'Running';
-                    statusMessage.textContent = message || 'React app is running on port 3000';
+                    statusMessage.textContent = message || `${service} is running`;
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
-                    appLink.style.display = 'block';
+                    if (link) link.style.display = 'inline';
                     break;
                 case 'stopped':
                     statusText.textContent = 'Stopped';
-                    statusMessage.textContent = message || 'React app is not running';
+                    statusMessage.textContent = message || `${service} is not running`;
                     startBtn.disabled = false;
                     stopBtn.disabled = true;
-                    appLink.style.display = 'none';
+                    if (link) link.style.display = 'none';
                     break;
                 case 'starting':
                     statusText.textContent = 'Starting...';
-                    statusMessage.textContent = message || 'Starting React development server...';
+                    statusMessage.textContent = message || `Starting ${service}...`;
                     startBtn.disabled = true;
                     stopBtn.disabled = false;
-                    appLink.style.display = 'none';
+                    if (link) link.style.display = 'none';
                     break;
             }
         }
 
         // IPC listeners
         ipcRenderer.on('status-update', (event, data) => {
-            updateStatus(data.status, data.message);
+            updateServiceStatus(data.service, data.status, data.message);
         });
 
         ipcRenderer.on('log-output', (event, data) => {
-            if (logContainer.style.display === 'none') {
-                logContainer.style.display = 'block';
+            const logContainer = document.getElementById(`${data.service}-logs`);
+            if (logContainer) {
+                logContainer.classList.add('show');
+                const logLine = document.createElement('div');
+                logLine.className = 'log-line';
+                logLine.textContent = data.output.trim();
+                logContainer.appendChild(logLine);
+                logContainer.scrollTop = logContainer.scrollHeight;
             }
-            const logLine = document.createElement('div');
-            logLine.className = 'log-line';
-            logLine.textContent = data.trim();
-            logContainer.appendChild(logLine);
-            logContainer.scrollTop = logContainer.scrollHeight;
         });
 
         // Button handlers
-        startBtn.addEventListener('click', () => {
-            ipcRenderer.send('start-app');
-            updateStatus('starting', 'Starting React app...');
-            logContainer.innerHTML = '<div class="log-line">Starting React development server...</div>';
-            logContainer.style.display = 'block';
+        services.forEach(service => {
+            const startBtn = document.getElementById(`${service}-start`);
+            const stopBtn = document.getElementById(`${service}-stop`);
+
+            startBtn.addEventListener('click', () => {
+                ipcRenderer.send('start-app', service);
+                updateServiceStatus(service, 'starting', `Starting ${service}...`);
+                const logContainer = document.getElementById(`${service}-logs`);
+                if (logContainer) {
+                    logContainer.innerHTML = '<div class="log-line">Starting...</div>';
+                    logContainer.classList.add('show');
+                }
+            });
+
+            stopBtn.addEventListener('click', () => {
+                ipcRenderer.send('stop-app', service);
+                updateServiceStatus(service, 'stopped', `Stopping ${service}...`);
+            });
         });
 
-        stopBtn.addEventListener('click', () => {
-            ipcRenderer.send('stop-app');
-            updateStatus('stopped', 'Stopping React app...');
-            logContainer.innerHTML = '<div class="log-line">Stopping React development server...</div>';
-        });
-
-        refreshBtn.addEventListener('click', () => {
+        document.getElementById('refreshBtn').addEventListener('click', () => {
             ipcRenderer.send('check-status');
         });
 
@@ -342,5 +378,3 @@
     </script>
 </body>
 </html>
-
-

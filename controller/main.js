@@ -5,19 +5,25 @@ const fs = require('fs');
 
 let mainWindow;
 let reactProcess = null;
-let isRunning = false;
+let hrBackendProcess = null;
+let hrFrontendProcess = null;
+let isSpeakeasyRunning = false;
+let isHRBackendRunning = false;
+let isHRFrontendRunning = false;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 500,
-    height: 400,
-    resizable: false,
+    width: 600,
+    height: 700,
+    resizable: true,
+    minWidth: 550,
+    minHeight: 650,
     show: false, // Don't show until ready
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
     },
-    title: 'Speakeasy Controller',
+    title: 'Speakeasy & HR Agent Controller',
     autoHideMenuBar: true
   });
 
@@ -30,8 +36,8 @@ function createWindow() {
     console.log('Controller window opened');
   });
 
-  // Check if React app is already running on port 3000
-  checkPortStatus();
+  // Check if services are already running
+  checkAllPortStatus();
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -41,32 +47,51 @@ function createWindow() {
   // mainWindow.webContents.openDevTools();
 }
 
-// Check if port 3000 is in use (React app running)
-function checkPortStatus() {
+// Check all port statuses
+function checkAllPortStatus() {
+  // Check SpeakEasy (port 3000)
   exec('netstat -ano | findstr :3000', (error, stdout) => {
-    if (stdout && stdout.trim()) {
-      isRunning = true;
-      if (mainWindow) {
-        mainWindow.webContents.send('status-update', { 
-          status: 'running', 
-          message: 'React app is running on port 3000' 
-        });
-      }
-    } else {
-      isRunning = false;
-      if (mainWindow) {
-        mainWindow.webContents.send('status-update', { 
-          status: 'stopped', 
-          message: 'React app is not running' 
-        });
-      }
+    const isRunning = stdout && stdout.trim();
+    isSpeakeasyRunning = !!isRunning;
+    if (mainWindow) {
+      mainWindow.webContents.send('status-update', { 
+        service: 'speakeasy',
+        status: isRunning ? 'running' : 'stopped',
+        message: isRunning ? 'SpeakEasy is running on port 3000' : 'SpeakEasy is not running'
+      });
+    }
+  });
+
+  // Check HR Backend (port 5000)
+  exec('netstat -ano | findstr :5000', (error, stdout) => {
+    const isRunning = stdout && stdout.trim();
+    isHRBackendRunning = !!isRunning;
+    if (mainWindow) {
+      mainWindow.webContents.send('status-update', { 
+        service: 'hr-backend',
+        status: isRunning ? 'running' : 'stopped',
+        message: isRunning ? 'HR Backend is running on port 5000' : 'HR Backend is not running'
+      });
+    }
+  });
+
+  // Check HR Frontend (port 3001)
+  exec('netstat -ano | findstr :3001', (error, stdout) => {
+    const isRunning = stdout && stdout.trim();
+    isHRFrontendRunning = !!isRunning;
+    if (mainWindow) {
+      mainWindow.webContents.send('status-update', { 
+        service: 'hr-frontend',
+        status: isRunning ? 'running' : 'stopped',
+        message: isRunning ? 'HR Frontend is running on port 3001' : 'HR Frontend is not running'
+      });
     }
   });
 }
 
-// Start React development server
-function startReactApp() {
-  if (isRunning || reactProcess) {
+// Start SpeakEasy React app
+function startSpeakeasyApp() {
+  if (isSpeakeasyRunning || reactProcess) {
     return;
   }
 
@@ -74,31 +99,31 @@ function startReactApp() {
   const isWindows = process.platform === 'win32';
   const command = isWindows ? 'npm.cmd' : 'npm';
 
-  console.log('Starting React app...');
+  console.log('Starting SpeakEasy app...');
   reactProcess = spawn(command, ['start'], {
     cwd: projectRoot,
     shell: true,
-    stdio: 'pipe'
+    stdio: 'pipe',
+    env: { ...process.env, PORT: '3000' }
   });
 
   reactProcess.stdout.on('data', (data) => {
     const output = data.toString();
     console.log(output);
     
-    // Check if server started successfully
     if (output.includes('webpack compiled') || output.includes('Compiled successfully')) {
-      isRunning = true;
+      isSpeakeasyRunning = true;
       if (mainWindow) {
         mainWindow.webContents.send('status-update', { 
+          service: 'speakeasy',
           status: 'running', 
-          message: 'React app started successfully!' 
+          message: 'SpeakEasy started successfully!' 
         });
       }
     }
     
-    // Send logs to renderer
     if (mainWindow) {
-      mainWindow.webContents.send('log-output', output);
+      mainWindow.webContents.send('log-output', { service: 'speakeasy', output });
     }
   });
 
@@ -106,59 +131,212 @@ function startReactApp() {
     const output = data.toString();
     console.error(output);
     if (mainWindow) {
-      mainWindow.webContents.send('log-output', output);
+      mainWindow.webContents.send('log-output', { service: 'speakeasy', output });
     }
   });
 
   reactProcess.on('close', (code) => {
-    console.log(`React process exited with code ${code}`);
+    console.log(`SpeakEasy process exited with code ${code}`);
     reactProcess = null;
-    isRunning = false;
+    isSpeakeasyRunning = false;
     if (mainWindow) {
       mainWindow.webContents.send('status-update', { 
+        service: 'speakeasy',
         status: 'stopped', 
-        message: 'React app stopped' 
+        message: 'SpeakEasy stopped' 
       });
     }
   });
 
-  // Update status after a short delay
   setTimeout(() => {
     if (reactProcess && !reactProcess.killed) {
-      isRunning = true;
+      isSpeakeasyRunning = true;
       if (mainWindow) {
         mainWindow.webContents.send('status-update', { 
+          service: 'speakeasy',
           status: 'starting', 
-          message: 'Starting React app...' 
+          message: 'Starting SpeakEasy...' 
         });
       }
     }
   }, 2000);
 }
 
-// Stop React development server
-function stopReactApp() {
-  if (!reactProcess && !isRunning) {
+// Start HR Backend
+function startHRBackend() {
+  if (isHRBackendRunning || hrBackendProcess) {
     return;
   }
 
+  const backendRoot = path.join(__dirname, '..', 'backend');
+  const isWindows = process.platform === 'win32';
+  const command = isWindows ? 'npm.cmd' : 'npm';
+
+  console.log('Starting HR Backend...');
+  hrBackendProcess = spawn(command, ['start'], {
+    cwd: backendRoot,
+    shell: true,
+    stdio: 'pipe'
+  });
+
+  hrBackendProcess.stdout.on('data', (data) => {
+    const output = data.toString();
+    console.log(output);
+    
+    if (output.includes('running on port') || output.includes('HR Agent Backend')) {
+      isHRBackendRunning = true;
+      if (mainWindow) {
+        mainWindow.webContents.send('status-update', { 
+          service: 'hr-backend',
+          status: 'running', 
+          message: 'HR Backend started successfully!' 
+        });
+      }
+    }
+    
+    if (mainWindow) {
+      mainWindow.webContents.send('log-output', { service: 'hr-backend', output });
+    }
+  });
+
+  hrBackendProcess.stderr.on('data', (data) => {
+    const output = data.toString();
+    console.error(output);
+    if (mainWindow) {
+      mainWindow.webContents.send('log-output', { service: 'hr-backend', output });
+    }
+  });
+
+  hrBackendProcess.on('close', (code) => {
+    console.log(`HR Backend process exited with code ${code}`);
+    hrBackendProcess = null;
+    isHRBackendRunning = false;
+    if (mainWindow) {
+      mainWindow.webContents.send('status-update', { 
+        service: 'hr-backend',
+        status: 'stopped', 
+        message: 'HR Backend stopped' 
+      });
+    }
+  });
+}
+
+// Start HR Frontend
+function startHRFrontend() {
+  if (isHRFrontendRunning || hrFrontendProcess) {
+    return;
+  }
+
+  const frontendRoot = path.join(__dirname, '..', 'hr-agent-frontend');
+  const isWindows = process.platform === 'win32';
+  const command = isWindows ? 'npm.cmd' : 'npm';
+
+  console.log('Starting HR Frontend...');
+  hrFrontendProcess = spawn(command, ['start'], {
+    cwd: frontendRoot,
+    shell: true,
+    stdio: 'pipe',
+    env: { ...process.env, PORT: '3001', BROWSER: 'none' }
+  });
+
+  hrFrontendProcess.stdout.on('data', (data) => {
+    const output = data.toString();
+    console.log(output);
+    
+    if (output.includes('webpack compiled') || output.includes('Compiled successfully')) {
+      isHRFrontendRunning = true;
+      if (mainWindow) {
+        mainWindow.webContents.send('status-update', { 
+          service: 'hr-frontend',
+          status: 'running', 
+          message: 'HR Frontend started successfully!' 
+        });
+      }
+    }
+    
+    if (mainWindow) {
+      mainWindow.webContents.send('log-output', { service: 'hr-frontend', output });
+    }
+  });
+
+  hrFrontendProcess.stderr.on('data', (data) => {
+    const output = data.toString();
+    console.error(output);
+    if (mainWindow) {
+      mainWindow.webContents.send('log-output', { service: 'hr-frontend', output });
+    }
+  });
+
+  hrFrontendProcess.on('close', (code) => {
+    console.log(`HR Frontend process exited with code ${code}`);
+    hrFrontendProcess = null;
+    isHRFrontendRunning = false;
+    if (mainWindow) {
+      mainWindow.webContents.send('status-update', { 
+        service: 'hr-frontend',
+        status: 'stopped', 
+        message: 'HR Frontend stopped' 
+      });
+    }
+  });
+}
+
+// Stop service by port
+function stopServiceByPort(port, serviceName) {
   return new Promise((resolve) => {
-    // If we have the process, kill it
+    const isWindows = process.platform === 'win32';
+    
+    if (isWindows) {
+      exec(`netstat -ano | findstr :${port}`, (error, stdout) => {
+        if (stdout) {
+          const lines = stdout.trim().split('\n');
+          const pids = new Set();
+          
+          lines.forEach(line => {
+            const parts = line.trim().split(/\s+/);
+            if (parts.length > 0) {
+              const pid = parts[parts.length - 1];
+              if (pid && !isNaN(pid)) {
+                pids.add(pid);
+              }
+            }
+          });
+          
+          pids.forEach(pid => {
+            exec(`taskkill /F /T /PID ${pid}`, (killError) => {
+              if (killError) {
+                console.log(`Error killing process ${pid}:`, killError.message);
+              }
+            });
+          });
+        }
+        resolve();
+      });
+    } else {
+      exec(`lsof -ti:${port} | xargs kill -9`, (error) => {
+        if (error) {
+          console.log(`Error killing process on port ${port}:`, error.message);
+        }
+        resolve();
+      });
+    }
+  });
+}
+
+// Stop SpeakEasy
+function stopSpeakeasyApp() {
+  return new Promise((resolve) => {
     if (reactProcess) {
       const isWindows = process.platform === 'win32';
-      
       if (isWindows) {
-        // On Windows, we need to kill the process tree
         exec(`taskkill /F /T /PID ${reactProcess.pid}`, (error) => {
-          if (error) {
-            console.log('Error killing process:', error.message);
-          }
           reactProcess = null;
-          isRunning = false;
+          isSpeakeasyRunning = false;
           if (mainWindow) {
             mainWindow.webContents.send('status-update', { 
+              service: 'speakeasy',
               status: 'stopped', 
-              message: 'React app stopped' 
+              message: 'SpeakEasy stopped' 
             });
           }
           resolve();
@@ -166,83 +344,149 @@ function stopReactApp() {
       } else {
         reactProcess.kill('SIGTERM');
         reactProcess = null;
-        isRunning = false;
+        isSpeakeasyRunning = false;
         if (mainWindow) {
           mainWindow.webContents.send('status-update', { 
+            service: 'speakeasy',
             status: 'stopped', 
-            message: 'React app stopped' 
+            message: 'SpeakEasy stopped' 
           });
         }
         resolve();
       }
     } else {
-      // Try to find and kill any process using port 3000
+      stopServiceByPort(3000, 'speakeasy').then(() => {
+        isSpeakeasyRunning = false;
+        if (mainWindow) {
+          mainWindow.webContents.send('status-update', { 
+            service: 'speakeasy',
+            status: 'stopped', 
+            message: 'SpeakEasy stopped' 
+          });
+        }
+        resolve();
+      });
+    }
+  });
+}
+
+// Stop HR Backend
+function stopHRBackend() {
+  return new Promise((resolve) => {
+    if (hrBackendProcess) {
       const isWindows = process.platform === 'win32';
-      
       if (isWindows) {
-        exec('netstat -ano | findstr :3000', (error, stdout) => {
-          if (stdout) {
-            const lines = stdout.trim().split('\n');
-            const pids = new Set();
-            
-            lines.forEach(line => {
-              const parts = line.trim().split(/\s+/);
-              if (parts.length > 0) {
-                const pid = parts[parts.length - 1];
-                if (pid && !isNaN(pid)) {
-                  pids.add(pid);
-                }
-              }
-            });
-            
-            pids.forEach(pid => {
-              exec(`taskkill /F /T /PID ${pid}`, (killError) => {
-                if (killError) {
-                  console.log(`Error killing process ${pid}:`, killError.message);
-                }
-              });
-            });
-          }
-          
-          isRunning = false;
+        exec(`taskkill /F /T /PID ${hrBackendProcess.pid}`, (error) => {
+          hrBackendProcess = null;
+          isHRBackendRunning = false;
           if (mainWindow) {
             mainWindow.webContents.send('status-update', { 
+              service: 'hr-backend',
               status: 'stopped', 
-              message: 'React app stopped' 
+              message: 'HR Backend stopped' 
             });
           }
           resolve();
         });
       } else {
-        exec('lsof -ti:3000 | xargs kill -9', (error) => {
-          if (error) {
-            console.log('Error killing process on port 3000:', error.message);
-          }
-          isRunning = false;
+        hrBackendProcess.kill('SIGTERM');
+        hrBackendProcess = null;
+        isHRBackendRunning = false;
+        if (mainWindow) {
+          mainWindow.webContents.send('status-update', { 
+            service: 'hr-backend',
+            status: 'stopped', 
+            message: 'HR Backend stopped' 
+          });
+        }
+        resolve();
+      }
+    } else {
+      stopServiceByPort(5000, 'hr-backend').then(() => {
+        isHRBackendRunning = false;
+        if (mainWindow) {
+          mainWindow.webContents.send('status-update', { 
+            service: 'hr-backend',
+            status: 'stopped', 
+            message: 'HR Backend stopped' 
+          });
+        }
+        resolve();
+      });
+    }
+  });
+}
+
+// Stop HR Frontend
+function stopHRFrontend() {
+  return new Promise((resolve) => {
+    if (hrFrontendProcess) {
+      const isWindows = process.platform === 'win32';
+      if (isWindows) {
+        exec(`taskkill /F /T /PID ${hrFrontendProcess.pid}`, (error) => {
+          hrFrontendProcess = null;
+          isHRFrontendRunning = false;
           if (mainWindow) {
             mainWindow.webContents.send('status-update', { 
+              service: 'hr-frontend',
               status: 'stopped', 
-              message: 'React app stopped' 
+              message: 'HR Frontend stopped' 
             });
           }
           resolve();
         });
+      } else {
+        hrFrontendProcess.kill('SIGTERM');
+        hrFrontendProcess = null;
+        isHRFrontendRunning = false;
+        if (mainWindow) {
+          mainWindow.webContents.send('status-update', { 
+            service: 'hr-frontend',
+            status: 'stopped', 
+            message: 'HR Frontend stopped' 
+          });
+        }
+        resolve();
       }
+    } else {
+      stopServiceByPort(3001, 'hr-frontend').then(() => {
+        isHRFrontendRunning = false;
+        if (mainWindow) {
+          mainWindow.webContents.send('status-update', { 
+            service: 'hr-frontend',
+            status: 'stopped', 
+            message: 'HR Frontend stopped' 
+          });
+        }
+        resolve();
+      });
     }
   });
 }
 
 // IPC handlers
-ipcMain.on('start-app', () => {
-  startReactApp();
+ipcMain.on('start-app', (event, service) => {
+  if (service === 'speakeasy') {
+    startSpeakeasyApp();
+  } else if (service === 'hr-backend') {
+    startHRBackend();
+  } else if (service === 'hr-frontend') {
+    startHRFrontend();
+  }
 });
 
-ipcMain.on('stop-app', () => {
-  stopReactApp();
+ipcMain.on('stop-app', (event, service) => {
+  if (service === 'speakeasy') {
+    stopSpeakeasyApp();
+  } else if (service === 'hr-backend') {
+    stopHRBackend();
+  } else if (service === 'hr-frontend') {
+    stopHRFrontend();
+  }
 });
 
 ipcMain.on('check-status', () => {
-  checkPortStatus();
+  checkAllPortStatus();
 });
 
 // App lifecycle
@@ -263,17 +507,20 @@ app.on('error', (error) => {
 });
 
 app.on('window-all-closed', () => {
-  // On Windows, keep the app running even when all windows are closed
   if (process.platform !== 'darwin') {
-    // Stop React app before quitting
-    stopReactApp().then(() => {
+    Promise.all([
+      stopSpeakeasyApp(),
+      stopHRBackend(),
+      stopHRFrontend()
+    ]).then(() => {
       app.quit();
     });
   }
 });
 
 app.on('before-quit', () => {
-  // Ensure React app is stopped before quitting
-  stopReactApp();
+  stopSpeakeasyApp();
+  stopHRBackend();
+  stopHRFrontend();
 });
 

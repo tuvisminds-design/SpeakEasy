@@ -3,12 +3,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Mic, BookOpen, Clock, Sparkles, Target, Zap, 
   Volume2, MicOff, Play, Pause, ArrowRight, CheckCircle,
-  Loader2, LogOut, Eye, Users, Heart, Timer, RefreshCw
+  Loader2, LogOut, Eye, Users, Heart, Timer, RefreshCw,
+  FileText, Calendar, GraduationCap, Upload, Briefcase
 } from 'lucide-react';
+import axios from 'axios';
 import deepgramVoiceAgent from './services/deepgramVoiceAgent';
 import Login from './components/Login';
 import PreEvaluationTest from './components/PreEvaluationTest';
 import MicoCharacter from './components/MicoCharacter';
+import ResumeUploadHR from './components/ResumeUploadHR';
+import InterviewSchedulingHR from './components/InterviewSchedulingHR';
+import InterviewTrainingHR from './components/InterviewTrainingHR';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -24,6 +29,10 @@ const App = () => {
   const [speechStructure, setSpeechStructure] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentSection, setCurrentSection] = useState(0);
+  
+  // HR Agent states
+  const [candidate, setCandidate] = useState(null);
+  const [interviewScheduled, setInterviewScheduled] = useState(false);
   
   // Voice states
   const [isListening, setIsListening] = useState(false);
@@ -173,8 +182,8 @@ const App = () => {
         sections: speechType === 'planned' ? generatePlannedStructure() : generatePREPStructure()
       };
       setSpeechStructure(structure);
-      setActivePage('output');
       setIsGenerating(false);
+      // Keep activePage as 'generator' - the output will show automatically when speechStructure is set
     }, 2000);
   };
 
@@ -243,13 +252,18 @@ const App = () => {
       {/* Logo */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-r from-teal-500 to-purple-500 rounded-full flex items-center justify-center">
             <Mic className="w-6 h-6 text-white" />
-        </div>
+          </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900">SpeakEasy</h1>
             <p className="text-xs text-gray-500">Public Speaking Assistant</p>
-      </div>
+          </div>
+        </div>
+        <div className="mt-3 px-3 py-2 bg-gradient-to-r from-teal-50 to-purple-50 rounded-lg border border-teal-200">
+          <p className="text-xs text-teal-700 font-medium">
+            Part of SpeakEasy Ecosystem
+          </p>
         </div>
       </div>
 
@@ -259,39 +273,107 @@ const App = () => {
           NAVIGATION
         </h2>
         <nav className="space-y-1">
-          <button
-            onClick={() => setActivePage('generator')}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-              activePage === 'generator'
-                ? 'bg-teal-50 text-teal-600'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <Mic className="w-5 h-5" />
-            <span className="font-medium">Speech Generator</span>
-          </button>
-          <button
-            onClick={() => setActivePage('tips')}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-              activePage === 'tips'
-                ? 'bg-teal-50 text-teal-600'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <BookOpen className="w-5 h-5" />
-            <span className="font-medium">Speaking Tips</span>
-          </button>
-          <button
-            onClick={() => setActivePage('history')}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-              activePage === 'history'
-                ? 'bg-teal-50 text-teal-600'
-                : 'text-gray-700 hover:bg-gray-50'
-            }`}
-          >
-            <Clock className="w-5 h-5" />
-            <span className="font-medium">Speech History</span>
-          </button>
+          {/* HireEasy Section */}
+          <div className="mb-4">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">
+              HireEasy - Interview Training
+            </h3>
+            <button
+              onClick={() => setActivePage('resume')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors mb-1 ${
+                activePage === 'resume'
+                  ? 'bg-purple-50 text-purple-600'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Upload className="w-5 h-5" />
+              <span className="font-medium">Upload Resume</span>
+            </button>
+            <button
+              onClick={() => setActivePage('schedule')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors mb-1 ${
+                activePage === 'schedule'
+                  ? 'bg-purple-50 text-purple-600'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="font-medium">Schedule Interview</span>
+            </button>
+            <button
+              onClick={() => setActivePage('training')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                activePage === 'training'
+                  ? 'bg-gradient-to-r from-teal-50 to-purple-50 text-teal-600 border border-teal-200'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Mic className="w-5 h-5" />
+              <span className="font-medium">Practice with SpeakEasy</span>
+            </button>
+          </div>
+          
+          {/* Divider */}
+          <div className="my-4 border-t border-gray-200"></div>
+          
+          {/* SpeakEasy Section */}
+          <div>
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-2">
+              SpeakEasy - General Speaking
+            </h3>
+            <button
+              onClick={() => setActivePage('generator')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors mb-1 ${
+                activePage === 'generator'
+                  ? 'bg-teal-50 text-teal-600'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Sparkles className="w-5 h-5" />
+              <span className="font-medium">Speech Generator</span>
+            </button>
+            <button
+              onClick={() => setActivePage('tips')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors mb-1 ${
+                activePage === 'tips'
+                  ? 'bg-teal-50 text-teal-600'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <BookOpen className="w-5 h-5" />
+              <span className="font-medium">Speaking Tips</span>
+            </button>
+            <button
+              onClick={() => setActivePage('history')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
+                activePage === 'history'
+                  ? 'bg-teal-50 text-teal-600'
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Clock className="w-5 h-5" />
+              <span className="font-medium">Speech History</span>
+            </button>
+          </div>
+          
+          {/* Divider */}
+          <div className="my-4 border-t border-gray-200"></div>
+          
+          {/* Switch to HireEasy */}
+          <div className="mt-4 p-3 bg-gradient-to-r from-purple-50 to-teal-50 rounded-lg border border-purple-200">
+            <p className="text-xs font-semibold text-purple-700 mb-2">SpeakEasy Ecosystem</p>
+            <button
+              onClick={() => setActivePage('resume')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors border-2 ${
+                ['resume', 'schedule', 'training'].includes(activePage)
+                  ? 'bg-white text-purple-600 border-purple-300 shadow-sm'
+                  : 'bg-white text-gray-700 border-transparent hover:border-purple-200 hover:shadow-sm'
+              }`}
+            >
+              <Briefcase className="w-5 h-5" />
+              <span className="font-medium">Switch to HireEasy</span>
+            </button>
+          </div>
         </nav>
       </div>
 
@@ -783,8 +865,8 @@ const App = () => {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <BookOpen className="w-8 h-8 text-teal-500" />
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Speaking Tips</h1>
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Speaking Tips</h1>
             <p className="text-gray-600">Master these tips to become a confident speaker</p>
           </div>
         </div>
@@ -802,7 +884,7 @@ const App = () => {
                 <div className="flex items-center gap-4 mb-4">
                   <div className={`w-12 h-12 ${category.iconBg} rounded-lg flex items-center justify-center`}>
                     <IconComponent className={`w-6 h-6 ${category.iconColor}`} />
-                  </div>
+      </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900">{category.title}</h3>
                     <p className="text-sm text-gray-500">{category.tips.length} tips</p>
@@ -813,9 +895,9 @@ const App = () => {
                     <li key={tipIndex} className="flex items-start gap-2 text-sm text-gray-700">
                       <CheckCircle className="w-4 h-4 text-teal-500 mt-0.5 flex-shrink-0" />
                       <span>{tip}</span>
-                    </li>
+            </li>
                   ))}
-                </ul>
+          </ul>
               </motion.div>
             );
           })}
@@ -971,12 +1053,12 @@ const App = () => {
           <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
             <RefreshCw className="w-6 h-6 text-purple-600" />
           </div>
-          <div className="flex-1">
+        <div className="flex-1">
             <h1 className="text-3xl font-bold text-gray-900">Speech History</h1>
             <p className="text-gray-600 mt-1">Review and revisit your previously generated speaking points</p>
-          </div>
         </div>
-
+      </div>
+      
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-250px)]">
           {/* Left Panel - Speech List */}
@@ -985,15 +1067,15 @@ const App = () => {
               <h2 className="text-lg font-semibold text-gray-900">
                 Your Speeches ({displayHistory.length})
               </h2>
-            </div>
+        </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {displayHistory.map((speech) => {
                 const duration = getEstimatedDuration(speech.sections);
                 const isSelected = selectedSpeech?.id === speech.id;
                 
                 return (
-                  <motion.div
-                    key={speech.id}
+            <motion.div
+              key={speech.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
@@ -1008,7 +1090,7 @@ const App = () => {
                       <span>{formatDate(speech.createdAt)}</span>
                       <span className="px-2 py-0.5 bg-teal-100 text-teal-700 rounded text-xs font-medium">
                         {speech.type === 'planned' ? 'Planned' : 'PREP'}
-                      </span>
+                    </span>
                       <span className="text-gray-500">{duration}min</span>
                     </div>
                   </motion.div>
@@ -1039,33 +1121,33 @@ const App = () => {
                           <h3 className="font-semibold text-gray-900">{section.title}</h3>
                           <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                             {section.timeAllocation}
-                          </span>
+                      </span>
                         </div>
                         {section.description && (
                           <p className="text-sm text-gray-600 mb-2">{section.description}</p>
                         )}
                         {section.content && (
                           <p className="text-sm text-gray-700">{section.content}</p>
-                        )}
-                      </div>
-                    ))}
+                    )}
                   </div>
+                    ))}
+                </div>
                   <div className="mt-6">
-                    <button
+                <button
                       onClick={() => {
-                        setSpeechStructure({
+                    setSpeechStructure({
                           topic: selectedSpeech.topic,
                           type: selectedSpeech.type,
                           sections: selectedSpeech.sections
                         });
                         setSpeechType(selectedSpeech.type);
-                        setActivePage('generator');
-                      }}
+                    setActivePage('generator');
+                  }}
                       className="w-full py-3 px-6 bg-teal-500 text-white rounded-lg font-medium hover:bg-teal-600 transition-colors"
-                    >
+                >
                       View Full Speech
-                    </button>
-                  </div>
+        </button>
+      </div>
                 </div>
               </>
             ) : (
@@ -1075,9 +1157,9 @@ const App = () => {
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Select a Speech</h3>
                 <p className="text-gray-500 text-center">Choose a speech from the list to view its details</p>
-              </div>
-            )}
-          </div>
+        </div>
+      )}
+    </div>
         </div>
       </div>
     );
@@ -1188,6 +1270,45 @@ const App = () => {
                 setSpeechStructure={setSpeechStructure}
                 setActivePage={setActivePage}
                 setSpeechType={setSpeechType}
+              />
+            </motion.div>
+          )}
+          {activePage === 'resume' && (
+            <motion.div
+              key="resume"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <ResumeUploadHR 
+                setCandidate={setCandidate}
+                setActivePage={setActivePage}
+              />
+            </motion.div>
+          )}
+          {activePage === 'schedule' && (
+            <motion.div
+              key="schedule"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <InterviewSchedulingHR 
+                candidate={candidate}
+                setActivePage={setActivePage}
+              />
+            </motion.div>
+          )}
+          {activePage === 'training' && (
+            <motion.div
+              key="training"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+            >
+              <InterviewTrainingHR 
+                candidate={candidate}
+                setActivePage={setActivePage}
               />
             </motion.div>
           )}

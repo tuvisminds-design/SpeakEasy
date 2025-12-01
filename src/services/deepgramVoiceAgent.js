@@ -131,7 +131,7 @@ class DeepgramVoiceAgent {
       });
       
       // Test API key with a simple REST call first (optional, for debugging)
-      console.log('🧪 Testing API key validity...');
+      console.log('🧪 Testing API key validity and permissions...');
       try {
         const testResponse = await fetch('https://api.deepgram.com/v1/projects', {
           method: 'GET',
@@ -142,14 +142,22 @@ class DeepgramVoiceAgent {
         });
         
         if (testResponse.ok) {
+          const projects = await testResponse.json();
           console.log('✅ API key is valid (REST API test passed)');
+          console.log('📊 Available projects:', projects.projects?.length || 0);
         } else if (testResponse.status === 401) {
           console.error('❌ API key authentication failed (401 Unauthorized)');
-          throw new Error('Invalid API key. Please check your API key at https://console.deepgram.com/');
+          const error = new Error('Invalid or expired API key. Please:\n1. Go to https://console.deepgram.com/\n2. Check if your API key is active\n3. Regenerate a new key if needed\n4. Ensure the key has WebSocket/STT permissions enabled');
+          throw error;
         } else {
           console.warn('⚠️ API key test returned status:', testResponse.status);
+          const errorText = await testResponse.text();
+          console.warn('Response:', errorText);
         }
       } catch (testError) {
+        if (testError.message.includes('Invalid or expired')) {
+          throw testError;
+        }
         console.warn('⚠️ Could not test API key (this is okay, proceeding with WebSocket):', testError.message);
       }
       
@@ -260,7 +268,7 @@ class DeepgramVoiceAgent {
               // 2. API key doesn't have WebSocket permissions
               // 3. Network/firewall blocking
               // 4. CORS issues (less likely with WebSockets)
-              error = new Error(`Connection refused (code 1006). Possible causes:\n1. Invalid or expired API key\n2. API key lacks WebSocket/STT permissions\n3. Network/firewall blocking the connection\n\nPlease verify your API key at: https://console.deepgram.com/`);
+              error = new Error(`Connection refused (code 1006). This usually means:\n\n1. ❌ API key is invalid or expired\n   → Go to https://console.deepgram.com/ and verify your key\n   → Regenerate a new key if needed\n\n2. ❌ API key lacks WebSocket/STT permissions\n   → In Deepgram console, check your API key settings\n   → Ensure "WebSocket" and "STT" permissions are enabled\n   → You may need to create a new key with full permissions\n\n3. ❌ Network/firewall blocking\n   → Check if your network allows WebSocket connections\n   → Try from a different network if possible\n\nYour API key: ${this.apiKey.substring(0, 10)}...${this.apiKey.substring(this.apiKey.length - 4)}\n\n🔧 Quick Fix:\n1. Visit: https://console.deepgram.com/\n2. Go to API Keys section\n3. Create a NEW key with ALL permissions enabled\n4. Update your .env file with the new key\n5. Restart the React development server`);
             } else if (event.code !== 1000) {
               error = new Error(`Connection error: ${reason} (code: ${event.code})`);
             } else {
